@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Print Styles */
+.print-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.print-table, .print-table th, .print-table td {
+    border: 1px solid #000;
+}
+.print-table th, .print-table td {
+    padding: 6px 10px;
+    text-align: left;
+}
+.text-center {
+    text-align: center;
+}

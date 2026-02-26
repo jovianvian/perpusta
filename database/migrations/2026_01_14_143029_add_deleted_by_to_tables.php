@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $tables = ['books', 'peminjaman_buku', 'data_masuk_buku', 'users'];
+        foreach ($tables as $tableName) {
+            Schema::table($tableName, function (Blueprint $table) {
+                $table->unsignedBigInteger('deleted_by')->nullable()->after('deleted_at');
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        $tables = ['books', 'peminjaman_buku', 'data_masuk_buku', 'users'];
+        foreach ($tables as $tableName) {
+            Schema::table($tableName, function (Blueprint $table) {
+                $table->dropColumn('deleted_by');
+            });
+        }
+    }
+};
