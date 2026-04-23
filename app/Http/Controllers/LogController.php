@@ -47,33 +47,55 @@ class LogController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         }
 
-        // 1. Create separate 'location_ping' log
-        DB::table('edit_histories')->insert([
-            'table_name' => 'users',
-            'row_id' => $userId,
-            'action_type' => 'location_ping',
-            'edited_by' => $userId,
-            'perubahan' => 'User location update',
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        $intervalMinutes = (int) env('LOCATION_PING_INTERVAL_MINUTES', 10);
+        $now = now();
+
+        // Throttle location log: update latest ping if still inside interval.
+        $recentPing = DB::table('edit_histories')
+            ->where('edited_by', $userId)
+            ->where('action_type', 'location_ping')
+            ->where('created_at', '>=', $now->copy()->subMinutes($intervalMinutes))
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($recentPing) {
+            DB::table('edit_histories')
+                ->where('id', $recentPing->id)
+                ->update([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                    'updated_at' => $now
+                ]);
+        } else {
+            DB::table('edit_histories')->insert([
+                'table_name' => 'users',
+                'row_id' => $userId,
+                'action_type' => 'location_ping',
+                'edited_by' => $userId,
+                'perubahan' => 'User location update',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]);
+        }
 
         // 2. Update the LATEST 'login' log for this user (if within last 30 mins)
         // This ensures the "LOGIN" row in the table also shows the location
         DB::table('edit_histories')
             ->where('edited_by', $userId)
             ->where('action_type', 'login')
-            ->where('created_at', '>=', now()->subMinutes(30))
+            ->where('created_at', '>=', $now->copy()->subMinutes(30))
             ->orderByDesc('created_at')
             ->limit(1)
             ->update([
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'updated_at' => now()
+                'updated_at' => $now
             ]);
 
         return response()->json(['status' => 'success']);

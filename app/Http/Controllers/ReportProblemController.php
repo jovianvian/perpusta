@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
 use App\Helpers\DiscordHelper;
+use App\Helpers\NotificationHelper;
 
 class ReportProblemController extends Controller
 {
@@ -56,6 +57,13 @@ class ReportProblemController extends Controller
             ]);
 
             DiscordHelper::sendNotification("User **" . session('name') . "** melaporkan masalah: " . $request->description, "Laporan Masalah Baru", 15158332); // Red
+            NotificationHelper::notifyAdminsAndSupers(
+                'Laporan Masalah Baru',
+                session('name') . ' mengirim laporan masalah baru.',
+                '/admin/reports',
+                'warning',
+                (int) session('id')
+            );
 
             return redirect('/home')->with('success', 'Laporan masalah berhasil dikirim. Terima kasih!');
         }
@@ -71,6 +79,18 @@ class ReportProblemController extends Controller
                 'admin_note' => $request->admin_note,
                 'updated_at' => now()
             ]);
+
+            $report = DB::table('problem_reports')->where('id', $id)->first();
+            if ($report) {
+                NotificationHelper::notifyUser(
+                    (int) $report->user_id,
+                    'Status Laporan Diperbarui',
+                    'Status laporan masalah Anda diperbarui menjadi: ' . $request->status,
+                    '/report-problem',
+                    'info',
+                    (int) session('id')
+                );
+            }
 
             return back()->with('success', 'Status laporan diperbarui!');
         }

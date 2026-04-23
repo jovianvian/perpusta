@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -196,13 +196,13 @@
                     recognition.onstart = function() {
                         voiceBtn.classList.remove('text-slate-400');
                         voiceBtn.classList.add('text-red-500', 'animate-pulse');
-                        searchInput.placeholder = 'Listening...';
+                        searchInput.placeholder = '{{ __('Listening...') }}';
                     };
 
                     recognition.onend = function() {
                         voiceBtn.classList.remove('text-red-500', 'animate-pulse');
                         voiceBtn.classList.add('text-slate-400');
-                        searchInput.placeholder = 'Search global...';
+                        searchInput.placeholder = '{{ __('Search global...') }}';
                     };
 
                     recognition.onresult = function(event) {
@@ -217,13 +217,53 @@
                         console.error('Speech recognition error', event.error);
                         voiceBtn.classList.remove('text-red-500', 'animate-pulse');
                         voiceBtn.classList.add('text-slate-400');
-                        searchInput.placeholder = 'Error. Try again.';
+                        searchInput.placeholder = '{{ __('Error. Try again.') }}';
                     };
                 } else {
                     voiceBtn.style.display = 'none';
                     console.warn('Speech Recognition API not supported in this browser.');
                 }
             }
+        });
+
+        // --- NOTIFICATION BADGE POLLING ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const headerActions = document.querySelector('header .flex.items-center.gap-4.ml-4');
+            if (!headerActions) return;
+
+            function syncNotificationBadge(count) {
+                const bellButton = document.querySelector('#notificationDropdown > button');
+                if (!bellButton) return;
+
+                let badge = document.getElementById('notificationBadge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.id = 'notificationBadge';
+                        badge.className = 'absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] leading-[18px] text-center font-semibold text-white bg-red-500 rounded-full';
+                        bellButton.appendChild(badge);
+                    }
+                    badge.textContent = count > 9 ? '9+' : String(count);
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+
+            function refreshUnreadCount() {
+                fetch("{{ route('notifications.unread_count') }}", {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then((res) => res.ok ? res.json() : null)
+                .then((data) => {
+                    if (!data || typeof data.count === 'undefined') return;
+                    syncNotificationBadge(Number(data.count) || 0);
+                })
+                .catch(() => {});
+            }
+
+            setInterval(refreshUnreadCount, 60000);
         });
     </script>
 </head>
@@ -238,6 +278,21 @@
         $appSetting = \App\Models\Setting::first();
         $appName = $appSetting ? $appSetting->site_name : config('app.name', 'Library System');
         $appLogo = $appSetting && $appSetting->logo ? Storage::url($appSetting->logo) : null;
+
+        $notifications = collect();
+        $unreadNotificationCount = 0;
+        if ($userId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            $notifications = DB::table('notifications')
+                ->where('user_id', $userId)
+                ->orderByDesc('created_at')
+                ->limit(8)
+                ->get();
+
+            $unreadNotificationCount = DB::table('notifications')
+                ->where('user_id', $userId)
+                ->where('is_read', false)
+                ->count();
+        }
     @endphp
 
     <div class="flex h-screen overflow-hidden">
@@ -276,35 +331,35 @@
                 @if($level == 1 || $level == 2 || $level == 5 || $level == 6)
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Master Data') }}</div>
 
-                <a href="{{ url('/databuku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('databuku*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/databuku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('databuku*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
                     {{ __('Book Data') }}
                 </a>
 
-                <a href="{{ url('/master-data') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('master-data*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/master-data') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('master-data*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     {{ __('Master Data') }}
                 </a>
 
-                <a href="{{ url('/datamasuk') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('datamasuk*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/datamasuk') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('datamasuk*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     {{ __('Incoming Books') }}
                 </a>
 
-                <a href="{{ url('/peminjaman') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('peminjaman*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/peminjaman') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('peminjaman*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     {{ __('Loans') }}
                 </a>
 
-                <a href="{{ url('/admin/request-buku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/request-buku*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/admin/request-buku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/request-buku*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                     </svg>
@@ -314,7 +369,7 @@
 
                 <!-- 2. DATA USER (Admin: 1, Super Admin: 5/6) -->
                 @if($level == 1 || $level == 5 || $level == 6)
-                <a href="{{ url('/datauser') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('datauser*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/datauser') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('datauser*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                     </svg>
@@ -326,21 +381,21 @@
                 @if($level == 1 || $level == 4 || $level == 5 || $level == 6)
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Reports') }}</div>
 
-                <a href="{{ url('/laporanpeminjaman') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('laporanpeminjaman*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/laporanpeminjaman') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('laporanpeminjaman*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     {{ __('Loan Report') }}
                 </a>
 
-                <a href="{{ url('/laporanmasuk') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('laporanmasuk*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/laporanmasuk') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('laporanmasuk*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     {{ __('Incoming Books Report') }}
                 </a>
 
-                <a href="{{ url('/admin/reports') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/reports*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/admin/reports') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/reports*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
@@ -352,28 +407,28 @@
                 @if($level == 3)
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Members') }}</div>
 
-                <a href="{{ url('/koleksi') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('koleksi*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/koleksi') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('koleksi*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
                     {{ __('Book Collection') }}
                 </a>
 
-                <a href="{{ url('/riwayat') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('riwayat*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/riwayat') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('riwayat*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     {{ __('Loan History') }}
                 </a>
 
-                <a href="{{ url('/request-buku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('request-buku*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/request-buku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('request-buku*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                     </svg>
                     {{ __('Request New Book') }}
                 </a>
 
-                <a href="{{ url('/report-problem') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('report-problem*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/report-problem') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('report-problem*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
@@ -385,7 +440,7 @@
                 @if($level == 5 || $level == 6)
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('System') }}</div>
                  
-                <a href="{{ route('settings.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('settings.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -393,7 +448,7 @@
                     {{ __('Role Settings') }}
                 </a>
 
-                <a href="{{ route('app_settings.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('app_settings.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('app_settings.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('app_settings.*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                     </svg>
@@ -401,7 +456,7 @@
                 </a>
 
                 <!-- Backup & Reset DB -->
-                <a href="{{ url('/system-maintenance') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('system-maintenance*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ url('/system-maintenance') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('system-maintenance*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
                     </svg>
@@ -409,7 +464,7 @@
                 </a>
 
                 <!-- Activity Log (Semua Level Bisa Lihat Punya Sendiri) -->
-                <a href="{{ route('activity.log') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('activity.log') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('activity.log') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('activity.log') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                     </svg>
@@ -420,7 +475,7 @@
                 <!-- Peminjam/Anggota juga bisa lihat log aktivitas -->
                 @if($level == 3)
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Account') }}</div>
-                <a href="{{ route('activity.log') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('activity.log') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('activity.log') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('activity.log') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                     </svg>
@@ -430,15 +485,15 @@
             </nav>
 
             <!-- User Profile (Bottom) -->
-            <div class="border-t border-slate-800 p-4">
+            <div class="border-t border-slate-200 dark:border-slate-800 p-4">
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('profile') }}" class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold hover:bg-slate-600 transition-colors">
+                    <a href="{{ route('profile') }}" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-800 dark:text-white font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
                         {{ substr(session('name') ?? 'U', 0, 1) }}
                     </a>
                     <div class="flex-1 min-w-0">
-                        <a href="{{ route('profile') }}" class="text-sm font-medium text-white truncate hover:text-indigo-400 transition-colors">{{ session('name') ?? 'Guest' }}</a>
+                        <a href="{{ route('profile') }}" class="text-sm font-medium text-slate-800 dark:text-white truncate hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">{{ session('name') ?? 'Guest' }}</a>
                     </div>
-                    <a href="{{ url('/logout') }}" class="text-slate-400 hover:text-white transition-colors" title="{{ __('Logout') }}">
+                    <a href="{{ url('/logout') }}" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors" title="{{ __('Logout') }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
@@ -460,7 +515,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </span>
-                        <input id="globalSearchInput" type="text" name="q" value="{{ request('q') }}" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Search global..." autocomplete="off">
+                        <input id="globalSearchInput" type="text" name="q" value="{{ request('q') }}" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-10 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="{{ __('Search global...') }}" autocomplete="off">
                         
                         <!-- Voice Search Button -->
                         <button type="button" id="voiceSearchBtn" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-indigo-500 transition-colors">
@@ -479,7 +534,7 @@
                 <!-- Right Actions -->
                 <div class="flex items-center gap-4 ml-4">
                     <!-- Dark Mode Toggle -->
-                    <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none" title="Toggle Theme">
+                    <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none" title="{{ __('Toggle Theme') }}">
                         <!-- Sun Icon (Show in Dark Mode) -->
                         <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         <!-- Moon Icon (Show in Light Mode) -->
@@ -487,7 +542,7 @@
                     </button>
 
                     <!-- Language Switcher (JSON Based) -->
-                    <div class="relative group">
+                    <div id="notificationDropdown" class="relative group">
                         <!-- Trigger Button -->
                         <button class="flex items-center gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors py-2 focus:outline-none">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.204 12.596a.3.3 0 01-.24.496H7.964a.3.3 0 01-.27-.17l-1.59-3.18m-1.59-3.18a4.5 4.5 0 00-1.72-3.186m14.39 3.186a4.5 4.5 0 01-1.72 3.186m-7.64 3.186c.616-1.544 1.51-2.912 2.62-4.048m0 0c.932-1.136 1.708-2.38 2.296-3.696M12 21h8m-2-5l2 5-5-2"></path></svg>
@@ -510,8 +565,11 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                             </svg>
-                            <!-- Badge Indicator -->
-                            <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-900"></span>
+                            @if($unreadNotificationCount > 0)
+                            <span id="notificationBadge" class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] leading-[18px] text-center font-semibold text-white bg-red-500 rounded-full">
+                                {{ $unreadNotificationCount > 9 ? '9+' : $unreadNotificationCount }}
+                            </span>
+                            @endif
                         </button>
                         
                         <!-- Invisible Bridge -->
@@ -520,24 +578,39 @@
                         <!-- Dropdown Content -->
                         <div class="absolute right-0 top-[calc(100%+0.5rem)] w-80 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden hidden group-hover:block z-50">
                             <div class="p-4 border-b border-slate-200 dark:border-slate-700">
-                                <h3 class="font-semibold text-slate-800 dark:text-white">Notifikasi</h3>
-                            </div>
-                            <div class="max-h-64 overflow-y-auto">
-                                <!-- Dummy Notification Items -->
-                                <a href="#" class="block p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <p class="text-sm text-slate-800 dark:text-white font-medium">Buku "Harry Potter" tersedia!</p>
-                                    <p class="text-xs text-slate-500 mt-1">2 menit yang lalu</p>
-                                </a>
-                                <a href="#" class="block p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <p class="text-sm text-slate-800 dark:text-white font-medium">Batas waktu peminjaman segera habis.</p>
-                                    <p class="text-xs text-slate-500 mt-1">1 jam yang lalu</p>
-                                </a>
-                                <div class="p-4 text-center text-sm text-slate-500 italic">
-                                    Tidak ada notifikasi baru lainnya.
+                                <div class="flex items-center justify-between gap-2">
+                                    <h3 class="font-semibold text-slate-800 dark:text-white">{{ __('Notifications') }}</h3>
+                                    @if($notifications->count() > 0 && $unreadNotificationCount > 0)
+                                    <form action="{{ route('notifications.read_all') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+                                            {{ __('Mark all as read') }}
+                                        </button>
+                                    </form>
+                                    @endif
                                 </div>
                             </div>
-                            <div class="p-3 bg-slate-50 dark:bg-slate-700/50 text-center">
-                                <a href="#" class="text-xs font-medium text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400">Lihat Semua</a>
+                            <div class="max-h-64 overflow-y-auto">
+                                @forelse($notifications as $notification)
+                                <a href="{{ route('notifications.read', ['id' => $notification->id, 'redirect' => $notification->url ?: url()->current()]) }}"
+                                   class="block p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors {{ $notification->is_read ? 'opacity-80' : '' }}">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <p class="text-sm text-slate-800 dark:text-white font-medium">{{ $notification->title }}</p>
+                                        @if(!$notification->is_read)
+                                        <span class="mt-1 inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1">{{ $notification->message }}</p>
+                                    <p class="text-[11px] text-slate-400 mt-2">{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</p>
+                                </a>
+                                @empty
+                                <div class="p-4 text-center text-sm text-slate-500 italic">
+                                    {{ __('No notifications yet.') }}
+                                </div>
+                                @endforelse
+                            </div>
+                            <div class="p-3 bg-slate-50 dark:bg-slate-700/50 text-center text-xs text-slate-500">
+                                {{ __('Notification updates are shown for your account.') }}
                             </div>
                         </div>
                     </div>
@@ -571,5 +644,7 @@
             </main>
         </div>
     </div>
+    <script src="{{ asset('js/global-table-filter.js') }}"></script>
 </body>
 </html>
+

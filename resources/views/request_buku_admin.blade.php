@@ -8,7 +8,7 @@
 
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="status,pemohon">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4">{{ __('Loan Date') }}</th>
@@ -21,7 +21,7 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($requests as $req)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50" data-status="{{ strtolower($req->status ?? '') }}" data-pemohon="{{ strtolower($req->pemohon ?? '') }}">
                     <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ \Carbon\Carbon::parse($req->created_at)->format('d M Y') }}</td>
                     <td class="p-4 text-slate-900 dark:text-white font-medium">{{ $req->pemohon }}</td>
                     <td class="p-4">

@@ -11,11 +11,11 @@
         @if (session('level') == 6 || session('level') == 5)
             <button onclick="toggleHistoryLoan()" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-blue-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                History
+                {{ __('History') }}
             </button>
             <button onclick="toggleTrashLoan()" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-red-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                Trash
+                {{ __('Trash') }}
             </button>
         @endif
 
@@ -28,10 +28,29 @@
     </div>
 </div>
 
+<div class="mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Search') }}</label>
+            <input id="loanSearchInput" type="text" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Search borrower or book...') }}">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Status') }}</label>
+            <select id="loanStatusFilter" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white">
+                <option value="">{{ __('All Status') }}</option>
+                <option value="dipinjam">{{ __('Active') }}</option>
+                <option value="dikembalikan">{{ __('Returned') }}</option>
+                <option value="pending_pinjam">{{ __('Pending Approval') }}</option>
+                <option value="pending_kembali">{{ __('Request Return') }}</option>
+            </select>
+        </div>
+    </div>
+</div>
+
 <!-- Main Table -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="status">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">{{ __('No') }}</th>
@@ -45,7 +64,10 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($data as $index => $item)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <tr class="loan-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    data-borrower="{{ strtolower($item->nama_peminjam) }}"
+                    data-book="{{ strtolower($item->judul_buku) }}"
+                    data-status="{{ strtolower($item->status) }}">
                     <td class="p-4 text-slate-500 dark:text-slate-400">{{ $index + 1 }}</td>
                     <td class="p-4 text-slate-600 dark:text-slate-300 font-medium">{{ $item->nama_peminjam }}</td>
                     <td class="p-4 text-slate-800 dark:text-white">{{ $item->judul_buku }}</td>
@@ -290,6 +312,35 @@
 </div>
 
 <script>
+    const loanUiText = {
+        addTitle: @json(__('Add New Loan')),
+        editTitle: @json(__('Edit Loan')),
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('loanSearchInput');
+        const statusFilter = document.getElementById('loanStatusFilter');
+        const rows = Array.from(document.querySelectorAll('.loan-row'));
+
+        function applyLoanFilters() {
+            const query = (searchInput?.value || '').toLowerCase().trim();
+            const selectedStatus = (statusFilter?.value || '').toLowerCase();
+
+            rows.forEach((row) => {
+                const borrower = row.dataset.borrower || '';
+                const book = row.dataset.book || '';
+                const status = row.dataset.status || '';
+
+                const queryMatch = !query || borrower.includes(query) || book.includes(query);
+                const statusMatch = !selectedStatus || status === selectedStatus;
+                row.style.display = (queryMatch && statusMatch) ? '' : 'none';
+            });
+        }
+
+        searchInput?.addEventListener('input', applyLoanFilters);
+        statusFilter?.addEventListener('change', applyLoanFilters);
+    });
+
     function openReturnModal(id) {
         document.getElementById('returnModal').classList.remove('hidden');
         // Set form action dynamically
@@ -319,7 +370,7 @@
 
     function openLoanModal() {
         document.getElementById('loanModal').classList.remove('hidden');
-        document.getElementById('modalTitle').innerText = 'Add New Loan';
+        document.getElementById('modalTitle').innerText = loanUiText.addTitle;
         document.getElementById('loanForm').action = "{{ url('/peminjaman/store') }}";
         document.getElementById('methodContainer').innerHTML = '';
         document.getElementById('loanForm').reset();
@@ -330,7 +381,7 @@
 
     function editLoan(item) {
         document.getElementById('loanModal').classList.remove('hidden');
-        document.getElementById('modalTitle').innerText = 'Edit Loan';
+        document.getElementById('modalTitle').innerText = loanUiText.editTitle;
         document.getElementById('loanForm').action = "{{ url('/peminjaman/update') }}"; // Fixed: remove ID from URL for this specific route
         document.getElementById('loanId').value = item.id;
         

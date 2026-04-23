@@ -45,7 +45,7 @@
                 <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('Your Requests') }}</h3>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="status">
                     <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                         <tr>
                             <th class="p-4">{{ __('Loan Date') }}</th>
@@ -56,7 +56,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                         @forelse($myRequests as $req)
-                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50" data-status="{{ strtolower($req->status ?? '') }}">
                             <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ \Carbon\Carbon::parse($req->created_at)->format('d M Y') }}</td>
                             <td class="p-4 font-medium text-slate-900 dark:text-white">{{ $req->judul_buku }}</td>
                             <td class="p-4">

@@ -55,7 +55,7 @@
         
         <!-- TAB: PENULIS -->
         <div x-show="activeTab === 'penulis'" class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <table class="js-smart-table w-full text-left text-sm text-slate-600 dark:text-slate-300">
                 <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400">
                     <tr>
                         <th class="px-6 py-4">#</th>
@@ -90,7 +90,7 @@
 
         <!-- TAB: KATEGORI -->
         <div x-show="activeTab === 'kategori'" class="overflow-x-auto" style="display: none;">
-            <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <table class="js-smart-table w-full text-left text-sm text-slate-600 dark:text-slate-300">
                 <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400">
                     <tr>
                         <th class="px-6 py-4">#</th>
@@ -125,7 +125,7 @@
 
         <!-- TAB: PENERBIT -->
         <div x-show="activeTab === 'penerbit'" class="overflow-x-auto" style="display: none;">
-            <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <table class="js-smart-table w-full text-left text-sm text-slate-600 dark:text-slate-300">
                 <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400">
                     <tr>
                         <th class="px-6 py-4">#</th>

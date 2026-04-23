@@ -116,9 +116,18 @@ class DataController extends Controller
     public function dataUser(Request $request)
     {
         if (session('id') > 0) {
+            $actor = DB::table('users')->where('id', session('id'))->first();
+            $superAdminLevelId = DB::table('levels')
+                ->whereRaw('LOWER(nama_level) = ?', ['super admin'])
+                ->value('id');
+            $actorIsSuperAdmin = $actor && $superAdminLevelId && (int) $actor->level_id === (int) $superAdminLevelId;
+
             $query = DB::table('users')
             ->leftJoin('levels', 'users.level_id', '=', 'levels.id')
-            ->select('users.*', 'levels.nama_level');
+            ->select('users.*', 'levels.nama_level')
+            ->when(!$actorIsSuperAdmin && $superAdminLevelId, function ($builder) use ($superAdminLevelId) {
+                $builder->where('users.level_id', '!=', $superAdminLevelId);
+            });
 
             if ($request->has('trash') && $request->trash == 1) {
                 $query->whereNotNull('users.deleted_at')
@@ -130,7 +139,12 @@ class DataController extends Controller
 
             $users = $query->orderBy('users.name', 'asc')->get();
 
-            $levels = DB::table('levels')->select('id', 'nama_level')->get();
+            $levels = DB::table('levels')
+                ->select('id', 'nama_level')
+                ->when(!$actorIsSuperAdmin && $superAdminLevelId, function ($builder) use ($superAdminLevelId) {
+                    $builder->where('id', '!=', $superAdminLevelId);
+                })
+                ->get();
 
             return response()->json([
                 'status' => 'success',

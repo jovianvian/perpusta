@@ -2,15 +2,15 @@
 
 @section('content')
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-white">{{ __('Loan History') }}</h1>
-    <p class="text-slate-400">{{ __('Track your active loans and return deadlines') }}</p>
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('Loan History') }}</h1>
+    <p class="text-slate-600 dark:text-slate-400">{{ __('Track your active loans and return deadlines') }}</p>
 </div>
 
 <!-- Main Table -->
-<div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="riwayatTable">
-            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wide">
+        <table class="js-smart-table w-full text-left border-collapse" id="riwayatTable" data-filter-fields="status">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">{{ __('No') }}</th>
                     <th class="p-4 font-medium">{{ __('Book Title') }}</th>
@@ -20,14 +20,14 @@
                     <th class="p-4 font-medium text-center">{{ __('Actions') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-700" id="tableRiwayatPeminjaman">
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="tableRiwayatPeminjaman">
                 <tr>
                     <td colspan="6" class="p-8 text-center text-slate-500">
                         <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Loading data...
+                        {{ __('Loading data...') }}
                     </td>
                 </tr>
             </tbody>
@@ -43,13 +43,13 @@
         "Returned": "{{ __('Returned') }}",
         "Pending Approval": "{{ __('Pending Approval') }}",
         "Return Requested": "{{ __('Request Return') }}",
-        "Waiting Action": "Waiting Action",
-        "Completed": "Completed",
-        "Calculating...": "Calculating...",
-        "Overdue!": "Overdue!",
-        "Request return for this book?": "Request return for this book?",
+        "Waiting Action": "{{ __('Waiting Action') }}",
+        "Completed": "{{ __('Completed') }}",
+        "Calculating...": "{{ __('Calculating...') }}",
+        "Overdue!": "{{ __('Overdue!') }}",
+        "Request return for this book?": "{{ __('Request return for this book?') }}",
         "Return": "{{ __('Request Return') }}",
-        "Unknown Title": "Unknown Title",
+        "Unknown Title": "{{ __('Unknown Title') }}",
         "You haven't borrowed any books yet.": "{{ __('No active loans found.') }}"
     };
 
@@ -124,7 +124,7 @@
                         var bookTitle = item.judul || item.judul_buku || translations['Unknown Title'];
 
                         rows += `
-                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-status="${statusRaw}">
                                 <td class="p-4 text-slate-500 dark:text-slate-400">${index + 1}</td>
                                 <td class="p-4 font-medium text-slate-900 dark:text-white">${bookTitle}</td>
                                 <td class="p-4 text-slate-600 dark:text-slate-300">${item.tanggal_pinjam}</td>
@@ -139,7 +139,7 @@
             },
             error: function(xhr, status, error) {
                 console.error("Error loading history:", error);
-                $('#tableRiwayatPeminjaman').html('<tr><td colspan="6" class="p-8 text-center text-red-400">Failed to load data.</td></tr>');
+                $('#tableRiwayatPeminjaman').html('<tr><td colspan="6" class="p-8 text-center text-red-500">{{ __('Failed to load data.') }}</td></tr>');
             }
         });
     }

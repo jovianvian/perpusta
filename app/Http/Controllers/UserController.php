@@ -9,18 +9,51 @@ use Illuminate\Support\Facades\Session;
 
 class UserController extends Controller
 {
+    private function currentUser()
+    {
+        return DB::table('users')->where('id', session('id'))->first();
+    }
+
+    private function superAdminLevelId()
+    {
+        return DB::table('levels')
+            ->whereRaw('LOWER(nama_level) = ?', ['super admin'])
+            ->value('id');
+    }
+
+    private function actorIsSuperAdmin(): bool
+    {
+        $actor = $this->currentUser();
+        if (!$actor) {
+            return false;
+        }
+
+        $superAdminLevelId = $this->superAdminLevelId();
+        return $superAdminLevelId && (int) $actor->level_id === (int) $superAdminLevelId;
+    }
+
     // ------------------- DATA USER -------------------
     public function dataUser()
     {
         if (session('id') > 0) {
+            $superAdminLevelId = $this->superAdminLevelId();
+            $actorIsSuperAdmin = $this->actorIsSuperAdmin();
+
             $users = DB::table('users')
             ->leftJoin('levels', 'users.level_id', '=', 'levels.id')
             ->select('users.*', 'levels.nama_level')
             ->whereNull('users.deleted_at')
+            ->when(!$actorIsSuperAdmin && $superAdminLevelId, function ($query) use ($superAdminLevelId) {
+                $query->where('users.level_id', '!=', $superAdminLevelId);
+            })
             ->orderBy('users.id', 'desc')
             ->get();
 
-            $levels = DB::table('levels')->get();
+            $levels = DB::table('levels')
+                ->when(!$actorIsSuperAdmin && $superAdminLevelId, function ($query) use ($superAdminLevelId) {
+                    $query->where('id', '!=', $superAdminLevelId);
+                })
+                ->get();
 
             // Additional Data for Super Admin (Trash & History)
             $deletedUsers = [];
@@ -30,6 +63,9 @@ class UserController extends Controller
                     ->leftJoin('levels', 'users.level_id', '=', 'levels.id')
                     ->select('users.*', 'levels.nama_level')
                     ->whereNotNull('users.deleted_at')
+                    ->when(!$actorIsSuperAdmin && $superAdminLevelId, function ($query) use ($superAdminLevelId) {
+                        $query->where('users.level_id', '!=', $superAdminLevelId);
+                    })
                     ->get();
 
                 $historyUsers = DB::table('edit_histories')
@@ -48,6 +84,16 @@ class UserController extends Controller
 
     public function resetPassword($id)
     {
+        $target = DB::table('users')->where('id', $id)->first();
+        if (!$target) {
+            return redirect('/datauser')->with('error', 'User tidak ditemukan.');
+        }
+
+        $superAdminLevelId = $this->superAdminLevelId();
+        if (!$this->actorIsSuperAdmin() && $superAdminLevelId && (int) $target->level_id === (int) $superAdminLevelId) {
+            return redirect('/datauser')->with('error', 'Akun Super Admin tidak bisa direset oleh role ini.');
+        }
+
         DB::table('users')->where('id', $id)->update([
             'password' => Hash::make('12345678'),
             'updated_at' => now()
@@ -73,6 +119,15 @@ class UserController extends Controller
 
     public function storeUsers(Request $request)
     {
+        $superAdminLevelId = $this->superAdminLevelId();
+        if (
+            !$this->actorIsSuperAdmin() &&
+            $superAdminLevelId &&
+            (int) $request->level_id === (int) $superAdminLevelId
+        ) {
+            return redirect('/datauser')->with('error', 'Role Super Admin tidak bisa dibuat oleh role ini.');
+        }
+
         $newUserId = DB::table('users')->insertGetId([
             'name'       => $request->name,
             'email'      => $request->email,
@@ -122,6 +177,22 @@ class UserController extends Controller
         return DB::transaction(function () use ($request, $id) {
 
             $currentUser = DB::table('users')->where('id', $id)->first();
+            if (!$currentUser) {
+                return redirect('/datauser')->with('error', 'User tidak ditemukan.');
+            }
+
+            $superAdminLevelId = $this->superAdminLevelId();
+            $actorIsSuperAdmin = $this->actorIsSuperAdmin();
+
+            if (!$actorIsSuperAdmin && $superAdminLevelId) {
+                if ((int) $currentUser->level_id === (int) $superAdminLevelId) {
+                    return redirect('/datauser')->with('error', 'Akun Super Admin tidak bisa diubah oleh role ini.');
+                }
+                if ((int) $request->level_id === (int) $superAdminLevelId) {
+                    return redirect('/datauser')->with('error', 'Role Super Admin tidak bisa diberikan oleh role ini.');
+                }
+            }
+
             $oldLevelId = $currentUser ? $currentUser->level_id : null;
 
             $userData = [
@@ -244,6 +315,16 @@ class UserController extends Controller
     public function destroy($id)
     {
         if (session('id') > 0) {
+            $target = DB::table('users')->where('id', $id)->first();
+            if (!$target) {
+                return redirect('/datauser')->with('error', 'User tidak ditemukan.');
+            }
+
+            $superAdminLevelId = $this->superAdminLevelId();
+            if (!$this->actorIsSuperAdmin() && $superAdminLevelId && (int) $target->level_id === (int) $superAdminLevelId) {
+                return redirect('/datauser')->with('error', 'Akun Super Admin tidak bisa dihapus oleh role ini.');
+            }
+
             DB::table('users')->where('id', $id)->update([
                 'deleted_at' => now(),
                 'deleted_by' => session('id')

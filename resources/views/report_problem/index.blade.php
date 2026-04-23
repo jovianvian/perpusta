@@ -8,7 +8,7 @@
 
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="status,pelapor">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                     <tr>
                         <th class="p-4">Tanggal</th>
@@ -22,7 +22,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                     @forelse($reports as $report)
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-status="{{ strtolower($report->status ?? '') }}" data-pelapor="{{ strtolower($report->reporter_name ?? '') }}">
                         <td class="p-4 text-sm text-slate-500">{{ \Carbon\Carbon::parse($report->created_at)->format('d M Y H:i') }}</td>
                         <td class="p-4 font-medium text-slate-800 dark:text-white">{{ $report->reporter_name }}</td>
                         <td class="p-4 text-sm text-slate-600 dark:text-slate-300 max-w-xs truncate">{{ $report->description }}</td>

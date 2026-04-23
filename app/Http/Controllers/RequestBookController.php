@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Helpers\NotificationHelper;
 
 class RequestBookController extends Controller
 {
@@ -45,6 +46,14 @@ class RequestBookController extends Controller
             'updated_at' => now()
         ]);
 
+        NotificationHelper::notifyAdminsAndSupers(
+            'Permintaan Buku Baru',
+            session('name') . " mengajukan buku: {$request->judul_buku}",
+            '/admin/request-buku',
+            'info',
+            (int) session('id')
+        );
+
         return back()->with('success', 'Request buku berhasil dikirim! Admin akan meninjaunya.');
     }
 
@@ -83,6 +92,19 @@ class RequestBookController extends Controller
             'alasan_penolakan' => ($status == 'ditolak') ? $alasan : null,
             'updated_at' => now()
         ]);
+
+        $notifMessage = $status == 'disetujui'
+            ? "Permintaan buku '{$reqData->judul_buku}' disetujui admin."
+            : "Permintaan buku '{$reqData->judul_buku}' ditolak. Alasan: {$alasan}";
+
+        NotificationHelper::notifyUser(
+            (int) $reqData->user_id,
+            'Status Permintaan Buku',
+            $notifMessage,
+            '/request-buku',
+            $status == 'disetujui' ? 'success' : 'warning',
+            (int) session('id')
+        );
 
         // Kirim Notifikasi WA
         if ($reqData->whatsapp) {

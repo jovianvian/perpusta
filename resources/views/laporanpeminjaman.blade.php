@@ -50,7 +50,7 @@
 <!-- Table -->
 <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="tableLaporan">
+        <table class="js-smart-table w-full text-left border-collapse" id="tableLaporan" data-filter-fields="status,kategori">
             <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">No</th>
@@ -64,7 +64,7 @@
             </thead>
             <tbody class="divide-y divide-slate-700">
                 @forelse($laporan as $l)
-                <tr class="hover:bg-slate-700/50 transition-colors">
+                <tr class="hover:bg-slate-700/50 transition-colors" data-status="{{ strtolower($l->status ?? '') }}" data-kategori="{{ strtolower($l->kategori ?? '') }}">
                     <td class="p-4 text-slate-400">{{ $loop->iteration }}</td>
                     <td class="p-4 text-slate-300 font-medium">{{ $l->nama_peminjam }}</td>
                     <td class="p-4 text-indigo-400">{{ $l->judul_buku }}</td>

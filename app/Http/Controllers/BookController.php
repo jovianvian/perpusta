@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Session;
 use Spatie\SimpleExcel\SimpleExcelReader;
 
 use App\Helpers\DiscordHelper;
+use App\Helpers\NotificationHelper;
 
 class BookController extends Controller
 {
@@ -45,6 +46,15 @@ class BookController extends Controller
             }
 
             DiscordHelper::sendNotification("User **" . session('name') . "** baru saja mengimport **$count** buku baru via Excel.", "Import Data Buku", 3066993); // Green
+            if ($count > 0) {
+                NotificationHelper::notifyBorrowers(
+                    'Koleksi Buku Diperbarui',
+                    "Ada {$count} buku baru ditambahkan ke perpustakaan.",
+                    '/koleksi',
+                    'info',
+                    (int) session('id')
+                );
+            }
 
             return back()->with('success', "Berhasil mengimport $count buku!");
         }
@@ -141,16 +151,25 @@ class BookController extends Controller
                 'foto' => $fotoPath,
                 'file_buku' => $fileBukuPath
             ]);
+            $bookId = DB::getPdo()->lastInsertId();
 
             DB::table('edit_histories')->insert([
                 'table_name' => 'books',
-                'row_id' => DB::getPdo()->lastInsertId(),
+                'row_id' => $bookId,
                 'action_type' => 'create',
                 'perubahan' => 'Buku baru ditambahkan',
                 'edited_by' => session('id'),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
+
+            NotificationHelper::notifyBorrowers(
+                'Buku Baru Tersedia',
+                "Buku baru tersedia: {$request->judul}",
+                '/koleksi',
+                'success',
+                (int) session('id')
+            );
 
             return redirect('/databuku')->with('success', 'Buku berhasil ditambahkan!');
         } else {

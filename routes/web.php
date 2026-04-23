@@ -13,6 +13,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\ReportProblemController;
+use App\Http\Controllers\NotificationController;
 
 // AUTHENTICATION ROUTES
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -53,6 +54,9 @@ Route::group(['middleware' => 'web'], function () {
     // PROFILE
     Route::get('/profile', [MyController::class, 'profile'])->name('profile');
     Route::post('/profile', [MyController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/notifications/read/{id}', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read_all');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread_count');
 
     // REPORT PROBLEM
     Route::get('/report-problem', [ReportProblemController::class, 'create'])->name('report.create');

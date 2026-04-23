@@ -12,11 +12,11 @@
             <!-- Super Admin & Admin Actions -->
             <button onclick="toggleHistoryBook()" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-blue-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                History
+                {{ __('History') }}
             </button>
             <button onclick="toggleTrashBook()" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-red-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                Trash
+                {{ __('Trash') }}
             </button>
         @endif
 
@@ -37,10 +37,37 @@
     </div>
 </div>
 
+<!-- Table Toolbar -->
+<div class="mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Search') }}</label>
+            <input id="bookSearchInput" type="text" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Search by title, author, publisher...') }}">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Category') }}</label>
+            <select id="bookCategoryFilter" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white">
+                <option value="">{{ __('All Categories') }}</option>
+                @foreach($kategori as $k)
+                <option value="{{ strtolower($k->nama_kategori) }}">{{ $k->nama_kategori }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Stock Status') }}</label>
+            <select id="bookStockFilter" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white">
+                <option value="">{{ __('All') }}</option>
+                <option value="in">{{ __('In Stock') }}</option>
+                <option value="out">{{ __('Out of Stock') }}</option>
+            </select>
+        </div>
+    </div>
+</div>
+
 <!-- Glassy Table Container -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="category,stock">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">{{ __('No') }}</th>
@@ -53,7 +80,12 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($buku as $index => $item)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <tr class="book-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    data-title="{{ strtolower($item->judul) }}"
+                    data-author="{{ strtolower($item->nama_penulis) }}"
+                    data-publisher="{{ strtolower($item->nama_penerbit) }}"
+                    data-category="{{ strtolower($item->nama_kategori ?? '') }}"
+                    data-stock="{{ (int) $item->stok > 0 ? 'in' : 'out' }}">
                     <td class="p-4 text-slate-500 dark:text-slate-400">{{ $index + 1 }}</td>
                     <td class="p-4">
                         <div class="flex items-center gap-4">
@@ -72,7 +104,7 @@
                                 @if($item->file_buku)
                                     <a href="{{ asset('storage/' . $item->file_buku) }}" target="_blank" class="inline-flex items-center gap-1 mt-1 text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                        View E-Book
+                                        {{ __('View E-Book') }}
                                     </a>
                                 @endif
                             </div>
@@ -90,11 +122,11 @@
                     <td class="p-4">
                         @if($item->stok > 0)
                             <span class="bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 rounded-full px-3 py-1 text-xs font-medium">
-                                {{ $item->stok }} Available
+                                {{ $item->stok }} {{ __('Available') }}
                             </span>
                         @else
                             <span class="bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20 rounded-full px-3 py-1 text-xs font-medium">
-                                Out of Stock
+                                {{ __('Out of Stock') }}
                             </span>
                         @endif
                     </td>
@@ -134,17 +166,17 @@
 <div id="historyContainer" class="hidden mt-8">
     <h2 class="text-xl font-bold text-blue-500 dark:text-blue-400 mb-4 flex items-center gap-2">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        Edit History (Revertable)
+        {{ __('Edit History (Revertable)') }}
     </h2>
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-blue-500/20 overflow-hidden transition-colors">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                     <tr>
-                        <th class="p-4">Editor</th>
-                        <th class="p-4">Changes</th>
-                        <th class="p-4">Date</th>
-                        <th class="p-4 text-center">Action</th>
+                        <th class="p-4">{{ __('Editor') }}</th>
+                        <th class="p-4">{{ __('Changes') }}</th>
+                        <th class="p-4">{{ __('Date') }}</th>
+                        <th class="p-4 text-center">{{ __('Action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -155,12 +187,12 @@
                             <td class="p-4 text-slate-600 dark:text-slate-300 text-sm">{{ $h->perubahan }}</td>
                             <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ $h->created_at }}</td>
                             <td class="p-4 text-center">
-                                <a href="{{ url('/revert/' . $h->id) }}" onclick="return confirm('Revert changes?')" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 text-sm font-medium">Revert</a>
+                                <a href="{{ url('/revert/' . $h->id) }}" onclick="return confirm('{{ __('Revert changes?') }}')" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 text-sm font-medium">{{ __('Revert') }}</a>
                             </td>
                         </tr>
                         @endforeach
                     @else
-                        <tr><td colspan="4" class="p-4 text-center text-slate-500">No history found.</td></tr>
+                        <tr><td colspan="4" class="p-4 text-center text-slate-500">{{ __('No history found.') }}</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -172,16 +204,16 @@
 <div id="trashContainer" class="hidden mt-8">
     <h2 class="text-xl font-bold text-red-500 dark:text-red-400 mb-4 flex items-center gap-2">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-        Trash Bin (Soft Deleted)
+        {{ __('Trash Bin (Soft Deleted)') }}
     </h2>
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-red-500/20 overflow-hidden transition-colors">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                     <tr>
-                        <th class="p-4">Title</th>
-                        <th class="p-4">Deleted At</th>
-                        <th class="p-4 text-center">Actions</th>
+                        <th class="p-4">{{ __('Title') }}</th>
+                        <th class="p-4">{{ __('Deleted At') }}</th>
+                        <th class="p-4 text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -191,13 +223,13 @@
                             <td class="p-4 text-slate-800 dark:text-white">{{ $d->judul }}</td>
                             <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ $d->deleted_at }}</td>
                             <td class="p-4 text-center flex justify-center gap-3">
-                                <a href="{{ url('/restore/book/' . $d->id) }}" class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-medium text-sm">Restore</a>
-                                <a href="{{ url('/force-delete/book/' . $d->id) }}" onclick="return confirm('Delete permanently?')" class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 font-medium text-sm">Delete</a>
+                                <a href="{{ url('/restore/book/' . $d->id) }}" class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-medium text-sm">{{ __('Restore') }}</a>
+                                <a href="{{ url('/force-delete/book/' . $d->id) }}" onclick="return confirm('{{ __('Delete permanently?') }}')" class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 font-medium text-sm">{{ __('Delete') }}</a>
                             </td>
                         </tr>
                         @endforeach
                     @else
-                        <tr><td colspan="3" class="p-4 text-center text-slate-500">No deleted items.</td></tr>
+                        <tr><td colspan="3" class="p-4 text-center text-slate-500">{{ __('No deleted items.') }}</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -368,6 +400,43 @@
 </div>
 
 <script>
+    const bookUiText = {
+        addTitle: @json(__('Add New Book')),
+        editTitle: @json(__('Edit Book')),
+        pdfPlaceholder: @json(__('Drag PDF here or Click')),
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('bookSearchInput');
+        const categoryFilter = document.getElementById('bookCategoryFilter');
+        const stockFilter = document.getElementById('bookStockFilter');
+        const rows = Array.from(document.querySelectorAll('.book-row'));
+
+        function applyBookFilters() {
+            const query = (searchInput?.value || '').toLowerCase().trim();
+            const category = (categoryFilter?.value || '').toLowerCase();
+            const stock = (stockFilter?.value || '').toLowerCase();
+
+            rows.forEach((row) => {
+                const title = row.dataset.title || '';
+                const author = row.dataset.author || '';
+                const publisher = row.dataset.publisher || '';
+                const rowCategory = row.dataset.category || '';
+                const rowStock = row.dataset.stock || '';
+
+                const textMatch = !query || title.includes(query) || author.includes(query) || publisher.includes(query);
+                const categoryMatch = !category || rowCategory === category;
+                const stockMatch = !stock || rowStock === stock;
+
+                row.style.display = (textMatch && categoryMatch && stockMatch) ? '' : 'none';
+            });
+        }
+
+        searchInput?.addEventListener('input', applyBookFilters);
+        categoryFilter?.addEventListener('change', applyBookFilters);
+        stockFilter?.addEventListener('change', applyBookFilters);
+    });
+
     function openImportModal() {
         document.getElementById('importModal').classList.remove('hidden');
     }
@@ -410,20 +479,20 @@
 
     function openAddBookModal() {
         document.getElementById('bookModal').classList.remove('hidden');
-        document.getElementById('modalTitle').innerText = 'Add New Book';
+        document.getElementById('modalTitle').innerText = bookUiText.addTitle;
         document.getElementById('bookForm').action = "{{ url('/databuku/store') }}";
         document.getElementById('methodContainer').innerHTML = '';
         document.getElementById('bookForm').reset();
         
         // Reset Drag Drop UI
         removeImage('foto', 'preview-foto', 'placeholder-foto');
-        document.getElementById('filename-pdf').innerText = 'Drag PDF here or Click';
+        document.getElementById('filename-pdf').innerText = bookUiText.pdfPlaceholder;
         document.getElementById('filename-pdf').classList.remove('text-indigo-400');
     }
 
     function editBook(book) {
         document.getElementById('bookModal').classList.remove('hidden');
-        document.getElementById('modalTitle').innerText = 'Edit Book';
+        document.getElementById('modalTitle').innerText = bookUiText.editTitle;
         document.getElementById('bookForm').action = "{{ url('/databuku/update') }}/" + book.id;
         document.getElementById('bookId').value = book.id;
         
@@ -449,7 +518,7 @@
             document.getElementById('filename-pdf').innerText = "Current: " + book.file_buku.split('/').pop();
             document.getElementById('filename-pdf').classList.add('text-indigo-400');
         } else {
-            document.getElementById('filename-pdf').innerText = 'Drag PDF here or Click';
+            document.getElementById('filename-pdf').innerText = bookUiText.pdfPlaceholder;
             document.getElementById('filename-pdf').classList.remove('text-indigo-400');
         }
     }

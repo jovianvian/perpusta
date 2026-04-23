@@ -3,8 +3,8 @@
 @section('content')
 <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Incoming Books</h1>
-        <p class="text-slate-500 dark:text-slate-400">Track book inventory additions</p>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('Incoming Books') }}</h1>
+        <p class="text-slate-500 dark:text-slate-400">{{ __('Track book inventory additions') }}</p>
     </div>
     
     <div class="flex gap-3">
@@ -12,27 +12,45 @@
             <!-- Super Admin Actions -->
             <button onclick="toggleHistoryMasuk()" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-blue-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                History
+                {{ __('History') }}
             </button>
             <button onclick="toggleTrashMasuk()" class="bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-red-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                Trash
+                {{ __('Trash') }}
             </button>
         @endif
 
         @if (app(\App\Helpers\PermissionHelper::class)->hasPermission('buku-masuk.create'))
         <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Add Incoming
+            {{ __('Add Incoming') }}
         </button>
         @endif
+    </div>
+</div>
+
+<div class="mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Search') }}</label>
+            <input id="incomingSearchInput" type="text" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Search by book title...') }}">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Book') }}</label>
+            <select id="incomingBookFilter" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white">
+                <option value="">{{ __('All Books') }}</option>
+                @foreach($books as $book)
+                <option value="{{ strtolower($book->judul) }}">{{ $book->judul }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 </div>
 
 <!-- Main Table -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="book">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">No</th>
@@ -44,7 +62,7 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($data as $index => $item)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <tr class="incoming-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-book="{{ strtolower($item->judul) }}">
                     <td class="p-4 text-slate-500 dark:text-slate-400">{{ $index + 1 }}</td>
                     <td class="p-4 font-medium text-slate-900 dark:text-white">{{ $item->judul }}</td>
                     <td class="p-4">
@@ -92,10 +110,10 @@
             <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                     <tr>
-                        <th class="p-4">Editor</th>
-                        <th class="p-4">Changes</th>
-                        <th class="p-4">Date</th>
-                        <th class="p-4 text-center">Action</th>
+                        <th class="p-4">{{ __('Editor') }}</th>
+                        <th class="p-4">{{ __('Changes') }}</th>
+                        <th class="p-4">{{ __('Date') }}</th>
+                        <th class="p-4 text-center">{{ __('Action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -106,12 +124,12 @@
                             <td class="p-4 text-slate-600 dark:text-slate-300 text-sm">{{ $h->perubahan }}</td>
                             <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ $h->created_at }}</td>
                             <td class="p-4 text-center">
-                                <a href="{{ url('/revert/' . $h->id) }}" onclick="return confirm('Revert changes?')" class="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 text-sm font-medium">Revert</a>
+                                <a href="{{ url('/revert/' . $h->id) }}" onclick="return confirm('{{ __('Revert changes?') }}')" class="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 text-sm font-medium">{{ __('Revert') }}</a>
                             </td>
                         </tr>
                         @endforeach
                     @else
-                        <tr><td colspan="4" class="p-4 text-center text-slate-500 dark:text-slate-400">No history found.</td></tr>
+                        <tr><td colspan="4" class="p-4 text-center text-slate-500 dark:text-slate-400">{{ __('No history found.') }}</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -206,9 +224,35 @@
 </div>
 
 <script>
+    const incomingUiText = {
+        addTitle: @json(__('Add Incoming Book')),
+        editTitle: @json(__('Edit Incoming Data')),
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('incomingSearchInput');
+        const bookFilter = document.getElementById('incomingBookFilter');
+        const rows = Array.from(document.querySelectorAll('.incoming-row'));
+
+        function applyIncomingFilters() {
+            const query = (searchInput?.value || '').toLowerCase().trim();
+            const selectedBook = (bookFilter?.value || '').toLowerCase();
+
+            rows.forEach((row) => {
+                const book = row.dataset.book || '';
+                const matchQuery = !query || book.includes(query);
+                const matchBook = !selectedBook || book === selectedBook;
+                row.style.display = (matchQuery && matchBook) ? '' : 'none';
+            });
+        }
+
+        searchInput?.addEventListener('input', applyIncomingFilters);
+        bookFilter?.addEventListener('change', applyIncomingFilters);
+    });
+
     function openAddModal() {
         document.getElementById('dataModal').classList.remove('hidden');
-        document.getElementById('modalTitle').innerText = 'Add Incoming Book';
+        document.getElementById('modalTitle').innerText = incomingUiText.addTitle;
         document.getElementById('modalForm').action = "{{ url('/datamasuk/store') }}";
         document.getElementById('methodInputContainer').innerHTML = '';
         document.getElementById('modalForm').reset();
@@ -220,7 +264,7 @@
 
     function editDataMasuk(item) {
         document.getElementById('dataModal').classList.remove('hidden');
-        document.getElementById('modalTitle').innerText = 'Edit Incoming Data';
+        document.getElementById('modalTitle').innerText = incomingUiText.editTitle;
         document.getElementById('modalForm').action = "{{ url('/datamasuk/update') }}/" + item.id;
         
         // Laravel PUT method spoofing
