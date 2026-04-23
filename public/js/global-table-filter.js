@@ -9,7 +9,7 @@
 
   function createToolbar() {
     const wrap = document.createElement('div');
-    wrap.className = 'mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4';
+    wrap.className = 'mb-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4';
 
     const row = document.createElement('div');
     row.className = 'grid grid-cols-1 md:grid-cols-4 gap-3 items-end';
@@ -38,6 +38,7 @@
 
   function setupSmartTable(table) {
     if (!table || table.dataset.smartReady === '1') return;
+    if (table.dataset.smartMode === 'manual') return;
 
     const tbody = table.tBodies?.[0];
     if (!tbody) return;

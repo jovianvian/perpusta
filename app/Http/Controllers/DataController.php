@@ -163,8 +163,8 @@ class DataController extends Controller
             ], 401);
         }
 
-        $levelName = DB::table('levels')->where('id', session('level'))->value('nama_level');
-        if ($levelName !== 'Super Admin') {
+        $user = DB::table('users')->where('id', session('id'))->first();
+        if (!$user || !in_array((int) $user->level_id, [5, 6], true)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Forbidden'

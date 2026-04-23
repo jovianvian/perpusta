@@ -3,28 +3,28 @@
 @section('content')
 <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-white">Laporan Peminjaman</h1>
-        <p class="text-slate-400">View and export loan reports</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Laporan Peminjaman</h1>
+        <p class="text-slate-500 dark:text-slate-400">View and export loan reports</p>
     </div>
 </div>
 
 <!-- Filter Section -->
-<div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6 mb-6">
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6 transition-colors">
     <form action="{{ url('/laporanpeminjaman') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
         <div>
-            <label class="block text-sm font-medium text-slate-400 mb-2">From Date</label>
-            <input type="date" name="from" value="{{ request('from') }}" class="w-full bg-slate-700 border-transparent rounded-lg text-white py-2.5 px-4 focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">From Date</label>
+            <input type="date" name="from" value="{{ request('from') }}" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg text-slate-900 dark:text-white py-2.5 px-4 focus:ring-2 focus:ring-indigo-500">
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-400 mb-2">To Date</label>
-            <input type="date" name="to" value="{{ request('to') }}" class="w-full bg-slate-700 border-transparent rounded-lg text-white py-2.5 px-4 focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">To Date</label>
+            <input type="date" name="to" value="{{ request('to') }}" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg text-slate-900 dark:text-white py-2.5 px-4 focus:ring-2 focus:ring-indigo-500">
         </div>
         <div class="flex gap-3">
             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 Filter
             </button>
-            <a href="{{ url('/laporanpeminjaman') }}" class="bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center">
+            <a href="{{ url('/laporanpeminjaman') }}" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center">
                 Reset
             </a>
         </div>
@@ -48,10 +48,10 @@
 </div>
 
 <!-- Table -->
-<div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
     <div class="overflow-x-auto">
-        <table class="js-smart-table w-full text-left border-collapse" id="tableLaporan" data-filter-fields="status,kategori">
-            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wide">
+        <table class="js-smart-table w-full text-left border-collapse" id="tableLaporan" data-filter-fields="status,kategori" data-smart-mode="manual">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">No</th>
                     <th class="p-4 font-medium">Borrower</th>
@@ -62,15 +62,15 @@
                     <th class="p-4 font-medium">Status</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-700">
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($laporan as $l)
-                <tr class="hover:bg-slate-700/50 transition-colors" data-status="{{ strtolower($l->status ?? '') }}" data-kategori="{{ strtolower($l->kategori ?? '') }}">
-                    <td class="p-4 text-slate-400">{{ $loop->iteration }}</td>
-                    <td class="p-4 text-slate-300 font-medium">{{ $l->nama_peminjam }}</td>
-                    <td class="p-4 text-indigo-400">{{ $l->judul_buku }}</td>
-                    <td class="p-4 text-slate-400">{{ $l->kategori ?? '-' }}</td>
-                    <td class="p-4 text-slate-400 tgl-pinjam">{{ $l->tanggal_pinjam }}</td>
-                    <td class="p-4 text-slate-400">{{ $l->tanggal_kembali ?? '-' }}</td>
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-status="{{ strtolower($l->status ?? '') }}" data-kategori="{{ strtolower($l->kategori ?? '') }}">
+                    <td class="p-4 text-slate-500 dark:text-slate-400">{{ $loop->iteration }}</td>
+                    <td class="p-4 text-slate-700 dark:text-slate-300 font-medium">{{ $l->nama_peminjam }}</td>
+                    <td class="p-4 text-indigo-600 dark:text-indigo-400">{{ $l->judul_buku }}</td>
+                    <td class="p-4 text-slate-500 dark:text-slate-400">{{ $l->kategori ?? '-' }}</td>
+                    <td class="p-4 text-slate-500 dark:text-slate-400 tgl-pinjam">{{ $l->tanggal_pinjam }}</td>
+                    <td class="p-4 text-slate-500 dark:text-slate-400">{{ $l->tanggal_kembali ?? '-' }}</td>
                     <td class="p-4">
                         @if($l->status == 'Dipinjam' || $l->status == 'dipinjam')
                         <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-3 py-1 text-xs font-medium">

@@ -14,7 +14,7 @@ class LogController extends Controller
         if (!$userId) return redirect('/login');
 
         $user = DB::table('users')->where('id', $userId)->first();
-        $isSuperAdmin = ($user->level_id == 6); // Hanya Level 6 yang Super Admin (bisa liat semua)
+        $isSuperAdmin = in_array((int) $user->level_id, [5, 6], true); // Super Admin bisa lihat semua log
 
         $q = $request->q;
         

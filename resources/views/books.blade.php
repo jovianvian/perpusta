@@ -67,7 +67,7 @@
 <!-- Glassy Table Container -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
     <div class="overflow-x-auto">
-        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="category,stock">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="category,stock" data-smart-mode="manual">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">{{ __('No') }}</th>

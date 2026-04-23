@@ -8,6 +8,17 @@ use Illuminate\Support\Facades\Session;
 
 class MyController extends Controller
 {
+    private function isSuperAdminSession(): bool
+    {
+        $userId = session('id');
+        if (!$userId) {
+            return false;
+        }
+
+        $user = DB::table('users')->where('id', $userId)->first();
+        return $user && in_array((int) $user->level_id, [5, 6], true);
+    }
+
     // ------------------- GLOBAL SEARCH -------------------
     public function search(Request $request)
     {
@@ -140,7 +151,7 @@ class MyController extends Controller
         // Only Super Admin
         $userId = session('id');
         $user = DB::table('users')->where('id', $userId)->first();
-        if (!$user || ($user->level_id != 6)) {
+        if (!$user || !in_array((int) $user->level_id, [5, 6], true)) {
             return abort(403);
         }
 
@@ -179,7 +190,7 @@ class MyController extends Controller
         // Only Super Admin
         $userId = session('id');
         $user = DB::table('users')->where('id', $userId)->first();
-        if (!$user || ($user->level_id != 6)) {
+        if (!$user || !in_array((int) $user->level_id, [5, 6], true)) {
             return abort(403);
         }
 
@@ -358,8 +369,7 @@ class MyController extends Controller
 
     public function revertEdit($id)
     {
-        $levelName = DB::table('levels')->where('id', session('level'))->value('nama_level');
-        if ($levelName !== 'Super Admin') return view('404');
+        if (!$this->isSuperAdminSession()) return view('404');
 
         $history = DB::table('edit_histories')->where('id', $id)->first();
         if (!$history || !$history->old_values) {
@@ -433,8 +443,7 @@ class MyController extends Controller
 
     public function restore($type, $id)
     {
-        $levelName = DB::table('levels')->where('id', session('level'))->value('nama_level');
-        if ($levelName !== 'Super Admin') return view('404');
+        if (!$this->isSuperAdminSession()) return view('404');
 
         $table = '';
         if ($type == 'book') $table = 'books';
@@ -451,8 +460,7 @@ class MyController extends Controller
 
     public function forceDelete($type, $id)
     {
-        $levelName = DB::table('levels')->where('id', session('level'))->value('nama_level');
-        if ($levelName !== 'Super Admin') return view('404');
+        if (!$this->isSuperAdminSession()) return view('404');
 
         $table = '';
         if ($type == 'book') $table = 'books';
@@ -474,8 +482,7 @@ class MyController extends Controller
 
     public function restoreAll($type)
     {
-        $levelName = DB::table('levels')->where('id', session('level'))->value('nama_level');
-        if ($levelName !== 'Super Admin') return view('404');
+        if (!$this->isSuperAdminSession()) return view('404');
 
         $table = '';
         if ($type == 'book') $table = 'books';

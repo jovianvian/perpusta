@@ -35,13 +35,13 @@
                         <span class="font-bold text-lg text-slate-900 dark:text-white">{{ $item->nama_level }}</span>
                     </td>
                     <td class="p-4">
-                        @if($item->id == 5)
+                        @if(in_array((int) $item->id, [5, 6], true) || strtolower(trim((string) $item->nama_level)) === 'super admin')
                             <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-3 py-1 text-xs font-medium">
                                 {{ __('Full Access (Super Admin)') }}
                             </span>
                         @else
                             <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full px-3 py-1 text-xs font-medium">
-                                {{ $item->permissions->count() }} {{ __('Active Permissions') }}
+                                {{ $item->permissions_count ?? $item->permissions->count() }} {{ __('Active Permissions') }}
                             </span>
                         @endif
                     </td>

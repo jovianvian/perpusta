@@ -8,7 +8,7 @@
     </div>
     
     <div class="flex gap-3">
-        @if (session('level') == 6)
+        @if (session('level') == 6 || session('level') == 5)
             <!-- Super Admin Actions -->
             <button onclick="toggleHistoryMasuk()" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors border border-blue-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -50,7 +50,7 @@
 <!-- Main Table -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="book">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="book" data-smart-mode="manual">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">No</th>

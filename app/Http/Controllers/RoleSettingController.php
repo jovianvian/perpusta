@@ -21,9 +21,9 @@ class RoleSettingController extends Controller
             return abort(403);
         }
 
-        // Kita exclude Super Admin agar tidak tidak sengaja teredit (Opsional)
-        // Atau biarkan saja semua tampil
-        $levels = Level::all(); 
+        $levels = Level::withCount('permissions')
+            ->orderBy('id')
+            ->get();
         return view('settings.index', compact('levels'));
     }
 

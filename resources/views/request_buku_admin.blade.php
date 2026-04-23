@@ -1,14 +1,34 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('Book Requests') }}</h1>
-    <p class="text-slate-500 dark:text-slate-400">{{ __('Manage book requests from members') }}</p>
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('Request Approval') }}</h1>
+        <p class="text-slate-500 dark:text-slate-400">{{ __('Manage book requests from members') }}</p>
+    </div>
+</div>
+
+<div class="mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Search') }}</label>
+            <input id="requestSearchInput" type="text" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Search member, title, description...') }}">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Status') }}</label>
+            <select id="requestStatusFilter" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white">
+                <option value="">{{ __('All Status') }}</option>
+                <option value="pending">{{ __('Pending Approval') }}</option>
+                <option value="disetujui">{{ __('Approved') }}</option>
+                <option value="ditolak">{{ __('Rejected') }}</option>
+            </select>
+        </div>
+    </div>
 </div>
 
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="status,pemohon">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="status,pemohon" data-smart-mode="manual">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4">{{ __('Loan Date') }}</th>
@@ -21,7 +41,7 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($requests as $req)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50" data-status="{{ strtolower($req->status ?? '') }}" data-pemohon="{{ strtolower($req->pemohon ?? '') }}">
+                <tr class="request-row hover:bg-slate-50 dark:hover:bg-slate-700/50" data-status="{{ strtolower($req->status ?? '') }}" data-pemohon="{{ strtolower($req->pemohon ?? '') }}" data-judul="{{ strtolower($req->judul_buku ?? '') }}" data-deskripsi="{{ strtolower($req->deskripsi ?? '') }}">
                     <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ \Carbon\Carbon::parse($req->created_at)->format('d M Y') }}</td>
                     <td class="p-4 text-slate-900 dark:text-white font-medium">{{ $req->pemohon }}</td>
                     <td class="p-4">
@@ -99,6 +119,31 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('requestSearchInput');
+        const statusFilter = document.getElementById('requestStatusFilter');
+        const rows = Array.from(document.querySelectorAll('.request-row'));
+
+        function applyRequestFilters() {
+            const query = (searchInput?.value || '').toLowerCase().trim();
+            const selectedStatus = (statusFilter?.value || '').toLowerCase();
+
+            rows.forEach((row) => {
+                const pemohon = row.dataset.pemohon || '';
+                const judul = row.dataset.judul || '';
+                const deskripsi = row.dataset.deskripsi || '';
+                const status = row.dataset.status || '';
+
+                const queryMatch = !query || pemohon.includes(query) || judul.includes(query) || deskripsi.includes(query);
+                const statusMatch = !selectedStatus || status === selectedStatus;
+                row.style.display = (queryMatch && statusMatch) ? '' : 'none';
+            });
+        }
+
+        searchInput?.addEventListener('input', applyRequestFilters);
+        statusFilter?.addEventListener('change', applyRequestFilters);
+    });
+
     function openRejectModal(id) {
         document.getElementById('rejectModal').classList.remove('hidden');
         document.getElementById('rejectForm').action = "{{ url('/admin/request-buku') }}/" + id;

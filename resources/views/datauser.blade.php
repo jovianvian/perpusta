@@ -33,10 +33,28 @@
     </div>
 </div>
 
+<div class="mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Search') }}</label>
+            <input id="userSearchInput" type="text" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Search name or email...') }}">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Role') }}</label>
+            <select id="userRoleFilter" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white">
+                <option value="">{{ __('All Roles') }}</option>
+                @foreach($levels as $lvl)
+                <option value="{{ strtolower($lvl->nama_level) }}">{{ $lvl->nama_level }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+</div>
+
 <!-- Main User Table -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="role">
+        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="role" data-smart-mode="manual">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium">{{ __('No') }}</th>
@@ -48,7 +66,7 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @forelse($users as $index => $user)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-role="{{ strtolower($user->nama_level ?? '') }}">
+                <tr class="user-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-role="{{ strtolower($user->nama_level ?? '') }}" data-name="{{ strtolower($user->name ?? '') }}" data-email="{{ strtolower($user->email ?? '') }}">
                     <td class="p-4 text-slate-500 dark:text-slate-400">{{ $index + 1 }}</td>
                     <td class="p-4">
                         <div class="flex items-center gap-3">
@@ -262,6 +280,30 @@
         addTitle: @json(__('Add New User')),
         editTitle: @json(__('Edit User')),
     };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('userSearchInput');
+        const roleFilter = document.getElementById('userRoleFilter');
+        const rows = Array.from(document.querySelectorAll('.user-row'));
+
+        function applyUserFilters() {
+            const query = (searchInput?.value || '').toLowerCase().trim();
+            const selectedRole = (roleFilter?.value || '').toLowerCase();
+
+            rows.forEach((row) => {
+                const name = row.dataset.name || '';
+                const email = row.dataset.email || '';
+                const role = row.dataset.role || '';
+
+                const queryMatch = !query || name.includes(query) || email.includes(query);
+                const roleMatch = !selectedRole || role === selectedRole;
+                row.style.display = (queryMatch && roleMatch) ? '' : 'none';
+            });
+        }
+
+        searchInput?.addEventListener('input', applyUserFilters);
+        roleFilter?.addEventListener('change', applyUserFilters);
+    });
 
     function openAddUserModal() {
         document.getElementById('userModal').classList.remove('hidden');

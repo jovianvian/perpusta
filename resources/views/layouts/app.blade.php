@@ -273,6 +273,12 @@
         $userId = session('id');
         $user = DB::table('users')->where('id', $userId)->first();
         $level = $user ? $user->level_id : 0;
+        $petugasLevelId = DB::table('levels')
+            ->whereRaw('LOWER(nama_level) = ?', ['petugas'])
+            ->value('id');
+        $managerLevelId = DB::table('levels')
+            ->whereRaw('LOWER(nama_level) = ?', ['manager'])
+            ->value('id');
         
         // Fetch App Settings
         $appSetting = \App\Models\Setting::first();
@@ -327,38 +333,51 @@
                     {{ __('Dashboard') }}
                 </a>
 
-                <!-- 1. DATA MASTER (Admin: 1, Petugas: 2, Super Admin: 5/6) -->
-                @if($level == 1 || $level == 2 || $level == 5 || $level == 6)
+                <!-- 1. DATA MASTER -->
+                @if(
+                    app(\App\Helpers\PermissionHelper::class)->hasPermission('buku.read') ||
+                    app(\App\Helpers\PermissionHelper::class)->hasPermission('buku-masuk.read') ||
+                    app(\App\Helpers\PermissionHelper::class)->hasPermission('peminjaman.read')
+                )
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Master Data') }}</div>
 
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('buku.read'))
                 <a href="{{ url('/databuku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('databuku*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
                     {{ __('Book Data') }}
                 </a>
+                @endif
 
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('buku.read'))
                 <a href="{{ url('/master-data') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('master-data*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     {{ __('Master Data') }}
                 </a>
+                @endif
 
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('buku-masuk.read'))
                 <a href="{{ url('/datamasuk') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('datamasuk*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     {{ __('Incoming Books') }}
                 </a>
+                @endif
 
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('peminjaman.read'))
                 <a href="{{ url('/peminjaman') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('peminjaman*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     {{ __('Loans') }}
                 </a>
+                @endif
 
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('buku.create'))
                 <a href="{{ url('/admin/request-buku') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/request-buku*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
@@ -366,9 +385,10 @@
                     {{ __('Request Approval') }}
                 </a>
                 @endif
+                @endif
 
-                <!-- 2. DATA USER (Admin: 1, Super Admin: 5/6) -->
-                @if($level == 1 || $level == 5 || $level == 6)
+                <!-- 2. DATA USER -->
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('user.read'))
                 <a href="{{ url('/datauser') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('datauser*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -377,8 +397,8 @@
                 </a>
                 @endif
 
-                <!-- 3. LAPORAN (Admin: 1, Pemilik: 4, Super Admin: 5/6) -->
-                @if($level == 1 || $level == 4 || $level == 5 || $level == 6)
+                <!-- 3. LAPORAN -->
+                @if(app(\App\Helpers\PermissionHelper::class)->hasPermission('laporan.read'))
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Reports') }}</div>
 
                 <a href="{{ url('/laporanpeminjaman') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('laporanpeminjaman*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
@@ -395,6 +415,7 @@
                     {{ __('Incoming Books Report') }}
                 </a>
 
+                @if($level == 5 || $level == 6)
                 <a href="{{ url('/admin/reports') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/reports*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -402,9 +423,10 @@
                     {{ __('Problem Reports') }}
                 </a>
                 @endif
+                @endif
 
-                <!-- 4. MENU ANGGOTA (Peminjam: 3) -->
-                @if($level == 3)
+                <!-- 4. MENU ANGGOTA (Peminjam: 3, Super Admin: 5/6) -->
+                @if($level == 3 || $level == 5 || $level == 6)
                 <div class="pt-4 pb-1 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Members') }}</div>
 
                 <a href="{{ url('/koleksi') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->is('koleksi*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
@@ -447,6 +469,24 @@
                     </svg>
                     {{ __('Role Settings') }}
                 </a>
+
+                @if($petugasLevelId)
+                <a href="{{ route('settings.edit', $petugasLevelId) }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('settings.edit') && (int) request()->route('id') === (int) $petugasLevelId ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-8 0v2m8 0H7m5-10a3 3 0 110 6 3 3 0 010-6z"></path>
+                    </svg>
+                    {{ __('Petugas Access') }}
+                </a>
+                @endif
+
+                @if($managerLevelId)
+                <a href="{{ route('settings.edit', $managerLevelId) }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('settings.edit') && (int) request()->route('id') === (int) $managerLevelId ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M6 7v13m12-13v13M8 11h8m-8 4h8"></path>
+                    </svg>
+                    {{ __('Manager Access') }}
+                </a>
+                @endif
 
                 <a href="{{ route('app_settings.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('app_settings.*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -644,7 +684,57 @@
             </main>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const nav = document.querySelector('aside nav');
+            if (!nav) return;
+
+            const headerSelector = 'div.pt-4.pb-1.px-3.text-xs.font-semibold.text-slate-500.uppercase.tracking-wider';
+            const headers = Array.from(nav.querySelectorAll(headerSelector));
+
+            headers.forEach((header, index) => {
+                const toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.className = 'js-nav-group-toggle w-full flex items-center justify-between px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-700 dark:hover:text-slate-300 transition-colors';
+                toggle.innerHTML = `
+                    <span>${header.textContent.trim()}</span>
+                    <svg class="js-nav-chevron w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                `;
+
+                const body = document.createElement('div');
+                body.className = 'js-nav-group-body space-y-1';
+                body.dataset.groupIndex = String(index);
+
+                let node = header.nextElementSibling;
+                while (node && !node.matches(headerSelector)) {
+                    const next = node.nextElementSibling;
+                    body.appendChild(node);
+                    node = next;
+                }
+
+                const hasActiveLink = !!body.querySelector('a.bg-indigo-600');
+                const openByDefault = hasActiveLink;
+                body.classList.toggle('hidden', !openByDefault);
+                toggle.setAttribute('aria-expanded', openByDefault ? 'true' : 'false');
+
+                const chevron = toggle.querySelector('.js-nav-chevron');
+                if (!openByDefault && chevron) {
+                    chevron.classList.add('-rotate-90');
+                }
+
+                toggle.addEventListener('click', () => {
+                    const isHidden = body.classList.toggle('hidden');
+                    toggle.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
+                    chevron?.classList.toggle('-rotate-90', isHidden);
+                });
+
+                header.replaceWith(toggle);
+                toggle.insertAdjacentElement('afterend', body);
+            });
+        });
+    </script>
     <script src="{{ asset('js/global-table-filter.js') }}"></script>
 </body>
 </html>
-

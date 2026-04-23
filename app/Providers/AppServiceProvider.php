@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use App\Models\Setting;
 use Carbon\Carbon; // <--- 1. Tambah ini
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,10 +26,14 @@ class AppServiceProvider extends ServiceProvider
         
         Schema::defaultStringLength(191); // (Ini bawaan laravel biasanya)
 
-        // Share settings to all views
-        if (Schema::hasTable('settings')) {
-            $globalSettings = Setting::first();
-            View::share('globalSettings', $globalSettings);
+        // Share settings to all views, but don't block app boot if DB is unavailable.
+        try {
+            if (Schema::hasTable('settings')) {
+                $globalSettings = Setting::first();
+                View::share('globalSettings', $globalSettings);
+            }
+        } catch (Throwable $e) {
+            // Skip loading global settings during early setup / DB downtime.
         }
     }
 }

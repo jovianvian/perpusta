@@ -45,7 +45,7 @@
     <!-- Table -->
     <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="js-smart-table w-full text-left text-sm text-slate-600 dark:text-slate-400" data-filter-fields="action">
+            <table class="js-smart-table w-full text-left text-sm text-slate-600 dark:text-slate-400" data-filter-fields="action" data-smart-mode="manual">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-300">
                     <tr>
                         <th class="px-6 py-4">{{ __('Time') }}</th>

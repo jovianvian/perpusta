@@ -35,8 +35,8 @@ class CheckPermission
             return redirect('/login')->with('error', 'User tidak ditemukan.');
         }
 
-        // Super Admin bypass semua permission check
-        if ($user->nama_level === 'Super Admin') {
+        // Super Admin bypass semua permission check (by level_id or level name)
+        if (in_array((int) $user->level_id, [5, 6], true) || strtolower(trim((string) $user->nama_level)) === 'super admin') {
             return $next($request);
         }
 

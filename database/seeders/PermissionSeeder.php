@@ -85,7 +85,7 @@ class PermissionSeeder extends Seeder
 
         // Assign permissions ke level-level yang ada
         // Super Admin mendapat semua permissions
-        $superAdminLevel = DB::table('levels')->where('nama_level', 'Super Admin')->first();
+        $superAdminLevel = DB::table('levels')->whereRaw('LOWER(nama_level) = ?', ['super admin'])->first();
         if ($superAdminLevel) {
             $allPermissions = DB::table('permissions')->pluck('id');
             foreach ($allPermissions as $permissionId) {
@@ -94,7 +94,7 @@ class PermissionSeeder extends Seeder
         }
 
         // Admin mendapat sebagian besar permissions (kecuali manage permission)
-        $adminLevel = DB::table('levels')->where('nama_level', 'Admin')->first();
+        $adminLevel = DB::table('levels')->whereRaw('LOWER(nama_level) = ?', ['admin'])->first();
         if ($adminLevel) {
             $adminPermissions = DB::table('permissions')
                 ->where('module', '!=', 'permission')
@@ -105,7 +105,10 @@ class PermissionSeeder extends Seeder
         }
 
         // Petugas mendapat permissions untuk buku dan peminjaman
-        $petugasLevel = DB::table('levels')->where('nama_level', 'Petugas')->orWhere('nama_level', 'penjaga')->first();
+        $petugasLevel = DB::table('levels')
+            ->whereRaw('LOWER(nama_level) = ?', ['petugas'])
+            ->orWhereRaw('LOWER(nama_level) = ?', ['penjaga'])
+            ->first();
         if ($petugasLevel) {
             $petugasPermissions = DB::table('permissions')
                 ->whereIn('module', ['buku', 'buku-masuk', 'peminjaman'])
@@ -116,13 +119,27 @@ class PermissionSeeder extends Seeder
         }
 
         // Peminjam hanya mendapat read permissions untuk buku dan peminjaman sendiri
-        $peminjamLevel = DB::table('levels')->where('nama_level', 'Peminjam')->orWhere('nama_level', 'peminjam')->first();
+        $peminjamLevel = DB::table('levels')->whereRaw('LOWER(nama_level) = ?', ['peminjam'])->first();
         if ($peminjamLevel) {
             $peminjamPermissions = DB::table('permissions')
                 ->whereIn('name', ['buku.read', 'peminjaman.read'])
                 ->pluck('id');
             foreach ($peminjamPermissions as $permissionId) {
                 $assignPermission($peminjamLevel->id, $permissionId);
+            }
+        }
+
+        // Manager/Pemilik fokus ke laporan
+        $managerLevel = DB::table('levels')
+            ->whereRaw('LOWER(nama_level) = ?', ['manager'])
+            ->orWhereRaw('LOWER(nama_level) = ?', ['pemilik'])
+            ->first();
+        if ($managerLevel) {
+            $managerPermissions = DB::table('permissions')
+                ->whereIn('name', ['laporan.read', 'laporan.export'])
+                ->pluck('id');
+            foreach ($managerPermissions as $permissionId) {
+                $assignPermission($managerLevel->id, $permissionId);
             }
         }
     }
