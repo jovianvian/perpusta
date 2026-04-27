@@ -36,7 +36,7 @@ class SettingController extends Controller
         }
 
         $request->validate([
-            'site_name' => 'required|string|max:191',
+            'site_name' => 'nullable|string|max:191',
             'manager_name' => 'nullable|string|max:191',
             'address' => 'nullable|string',
             'contact_info' => 'nullable|string|max:191',

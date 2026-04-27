@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="mb-6">
@@ -34,7 +34,7 @@
                 <label for="site_name" class="block text-sm font-medium text-slate-700 dark:text-slate-400 pt-2">{{ __('Website Name') }}</label>
                 <div class="md:col-span-2">
                     <input type="text" name="site_name" id="site_name"
-                        value="{{ old('site_name', $setting->site_name ?? '') }}" required
+                        value="{{ old('site_name', $setting->site_name ?? '') }}"
                         class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 py-2.5 px-4 shadow-sm transition-colors">
                 </div>
             </div>
@@ -329,7 +329,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
-
 
 
 

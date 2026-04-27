@@ -16,7 +16,9 @@ class LogController extends Controller
         $user = DB::table('users')->where('id', $userId)->first();
         $isSuperAdmin = in_array((int) $user->level_id, [5, 6], true); // Super Admin bisa lihat semua log
 
-        $q = $request->q;
+        $q = trim((string) $request->get('q', ''));
+        $name = trim((string) $request->get('name', ''));
+        $userFilter = (int) $request->get('user_id', 0);
         
         $query = DB::table('edit_histories')
             ->leftJoin('users', 'edit_histories.edited_by', '=', 'users.id')
@@ -27,16 +29,33 @@ class LogController extends Controller
             $query->where('edit_histories.edited_by', $userId);
         }
 
-        $logs = $query->when($q, function($query) use ($q) {
-                $query->where('users.name', 'like', "%$q%")
-                      ->orWhere('edit_histories.action_type', 'like', "%$q%")
-                      ->orWhere('edit_histories.ip_address', 'like', "%$q%")
-                      ->orWhere('edit_histories.perubahan', 'like', "%$q%");
+        $logs = $query
+            ->when($isSuperAdmin && $userFilter > 0, function ($query) use ($userFilter) {
+                $query->where('edit_histories.edited_by', $userFilter);
+            })
+            ->when($isSuperAdmin && $name !== '', function ($query) use ($name) {
+                $query->where('users.name', 'like', "%{$name}%");
+            })
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($search) use ($q) {
+                    $search->where('users.name', 'like', "%{$q}%")
+                        ->orWhere('edit_histories.action_type', 'like', "%{$q}%")
+                        ->orWhere('edit_histories.ip_address', 'like', "%{$q}%")
+                        ->orWhere('edit_histories.perubahan', 'like', "%{$q}%");
+                });
             })
             ->orderBy('edit_histories.created_at', 'desc')
             ->paginate(20);
-            
-        return view('activity_log', compact('logs', 'isSuperAdmin'));
+
+        $users = collect();
+        if ($isSuperAdmin) {
+            $users = DB::table('users')
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('activity_log', compact('logs', 'isSuperAdmin', 'users'));
     }
 
     // ------------------- LOCATION TRACKING -------------------

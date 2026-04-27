@@ -23,7 +23,25 @@
 
     <!-- Filter -->
     <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-        <form action="{{ route('activity.log') }}" method="GET" class="flex gap-4">
+        <form action="{{ route('activity.log') }}" method="GET" class="flex flex-col md:flex-row gap-4">
+            @if($isSuperAdmin)
+            <div class="md:w-72">
+                <select name="user_id"
+                    class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <option value="">{{ __('All Users') }}</option>
+                    @foreach(($users ?? collect()) as $u)
+                        <option value="{{ $u->id }}" {{ (string) request('user_id') === (string) $u->id ? 'selected' : '' }}>
+                            {{ $u->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="md:w-64">
+                <input type="text" name="name" value="{{ request('name') }}"
+                    class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="{{ __('Filter by user name...') }}">
+            </div>
+            @endif
             <div class="flex-1">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -126,7 +144,7 @@
         <!-- Pagination -->
         @if($logs->hasPages())
         <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-            {{ $logs->appends(['q' => request('q')])->links() }}
+            {{ $logs->appends(['q' => request('q'), 'name' => request('name'), 'user_id' => request('user_id')])->links() }}
         </div>
         @endif
     </div>

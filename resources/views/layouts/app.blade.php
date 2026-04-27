@@ -329,7 +329,9 @@
 
         // Fetch App Settings
         $appSetting = \App\Models\Setting::first();
-        $appName = $appSetting ? $appSetting->site_name : config('app.name', 'Library System');
+        $appName = ($appSetting && !empty($appSetting->site_name))
+            ? $appSetting->site_name
+            : config('app.name', 'Library System');
         $appLogo = $appSetting && $appSetting->logo ? Storage::url($appSetting->logo) : null;
         $appFooterText = $appSetting && $appSetting->footer_text
             ? $appSetting->footer_text
@@ -375,14 +377,14 @@
         <!-- Sidebar -->
         <aside class="app-sidebar w-64 border-r flex-col fixed h-full z-30 hidden md:flex transition-colors duration-300" style="background-color: {{ $appSidebarBgColor }};">
             <!-- Logo -->
-            <div class="h-16 flex items-center justify-center border-b sidebar-border px-4">
-                <div class="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white">
+            <div class="h-24 flex items-center justify-center border-b sidebar-border px-4">
+                <div class="flex items-center gap-3 font-bold text-xl text-slate-800 dark:text-white">
                     @if($appLogo)
-                        <img src="{{ $appLogo }}" alt="Logo" class="w-8 h-8 object-contain rounded">
+                        <img src="{{ $appLogo }}" alt="Logo" class="w-14 h-14 object-contain rounded-lg">
                         <span>{{ $appName }}</span>
                     @else
-                        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                             </svg>
                         </div>
@@ -797,4 +799,3 @@
     <script src="{{ asset('js/global-table-filter.js') }}"></script>
 </body>
 </html>
-
