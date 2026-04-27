@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -30,6 +30,59 @@
             }
         }
     </script>
+    @php
+        $themePrimary = $globalSettings->theme_primary_color ?? '#4f46e5';
+        $themeSecondary = $globalSettings->theme_secondary_color ?? '#3730a3';
+        $themeBgImage = !empty($globalSettings?->background_image) ? Storage::url($globalSettings->background_image) : null;
+        $themeAppBackground = $globalSettings->app_background_color ?? '#f8fafc';
+        $themeSidebarBg = $globalSettings->sidebar_bg_color ?? '#0f172a';
+        $themeTopbarBg = $globalSettings->topbar_bg_color ?? '#ffffff';
+        $themeOverlayOpacity = isset($globalSettings->background_overlay_opacity)
+            ? max(0, min(1, (float) $globalSettings->background_overlay_opacity))
+            : 0.88;
+    @endphp
+    <style>
+        :root {
+            --app-primary: {{ $themePrimary }};
+            --app-secondary: {{ $themeSecondary }};
+            --app-bg: {{ $themeAppBackground }};
+            --app-sidebar-bg: {{ $themeSidebarBg }};
+            --app-topbar-bg: {{ $themeTopbarBg }};
+        }
+
+        .bg-indigo-600 { background-color: var(--app-primary) !important; }
+        .hover\:bg-indigo-700:hover { background-color: var(--app-secondary) !important; }
+        .text-indigo-400, .text-indigo-500, .text-indigo-600 { color: var(--app-primary) !important; }
+        .border-indigo-500 { border-color: var(--app-primary) !important; }
+        .focus\:border-indigo-500:focus { border-color: var(--app-primary) !important; }
+        .focus\:ring-indigo-500:focus { --tw-ring-color: var(--app-primary) !important; }
+
+        .app-sidebar {
+            background-color: var(--app-sidebar-bg) !important;
+        }
+        .app-sidebar nav a:not(.bg-indigo-600) {
+            color: rgba(241, 245, 249, 0.88) !important;
+        }
+        .app-sidebar nav a:not(.bg-indigo-600):hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+        }
+        .app-sidebar nav a.bg-indigo-600 {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        }
+        .app-sidebar nav .js-nav-group-toggle,
+        .app-sidebar nav > div.pt-4.pb-1 {
+            color: rgba(226, 232, 240, 0.72) !important;
+        }
+        .app-sidebar .sidebar-border {
+            border-color: rgba(148, 163, 184, 0.22) !important;
+        }
+        .app-topbar-custom {
+            background-color: var(--app-topbar-bg) !important;
+        }
+    </style>
     <script>
         // --- THEME TOGGLE SCRIPT ---
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -273,17 +326,33 @@
         $userId = session('id');
         $user = DB::table('users')->where('id', $userId)->first();
         $level = $user ? $user->level_id : 0;
-        $petugasLevelId = DB::table('levels')
-            ->whereRaw('LOWER(nama_level) = ?', ['petugas'])
-            ->value('id');
-        $managerLevelId = DB::table('levels')
-            ->whereRaw('LOWER(nama_level) = ?', ['manager'])
-            ->value('id');
-        
+
         // Fetch App Settings
         $appSetting = \App\Models\Setting::first();
         $appName = $appSetting ? $appSetting->site_name : config('app.name', 'Library System');
         $appLogo = $appSetting && $appSetting->logo ? Storage::url($appSetting->logo) : null;
+        $appFooterText = $appSetting && $appSetting->footer_text
+            ? $appSetting->footer_text
+            : '© '.date('Y').' '.$appName.'. All rights reserved.';
+        $appBackgroundImageUrl = $appSetting && $appSetting->background_image
+            ? Storage::url($appSetting->background_image)
+            : null;
+        $appBackgroundColor = $appSetting->app_background_color ?? '#f8fafc';
+        $appSidebarBgColor = $appSetting->sidebar_bg_color ?? '#0f172a';
+        $appTopbarBgColor = $appSetting->topbar_bg_color ?? '#ffffff';
+        $appOverlayOpacity = isset($appSetting->background_overlay_opacity)
+            ? max(0, min(1, (float) $appSetting->background_overlay_opacity))
+            : 0.88;
+
+        $hex = ltrim($appBackgroundColor, '#');
+        if (!preg_match('/^[A-Fa-f0-9]{6}$/', $hex)) {
+            $hex = 'f8fafc';
+        }
+        $overlayRgb = [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2)),
+        ];
 
         $notifications = collect();
         $unreadNotificationCount = 0;
@@ -301,12 +370,12 @@
         }
     @endphp
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen">
         
         <!-- Sidebar -->
-        <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col fixed h-full z-30 hidden md:flex transition-colors duration-300">
+        <aside class="app-sidebar w-64 border-r flex-col fixed h-full z-30 hidden md:flex transition-colors duration-300" style="background-color: {{ $appSidebarBgColor }};">
             <!-- Logo -->
-            <div class="h-16 flex items-center justify-center border-b border-slate-200 dark:border-slate-800 px-4">
+            <div class="h-16 flex items-center justify-center border-b sidebar-border px-4">
                 <div class="flex items-center gap-2 font-bold text-xl text-slate-800 dark:text-white">
                     @if($appLogo)
                         <img src="{{ $appLogo }}" alt="Logo" class="w-8 h-8 object-contain rounded">
@@ -470,24 +539,6 @@
                     {{ __('Role Settings') }}
                 </a>
 
-                @if($petugasLevelId)
-                <a href="{{ route('settings.edit', $petugasLevelId) }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('settings.edit') && (int) request()->route('id') === (int) $petugasLevelId ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-8 0v2m8 0H7m5-10a3 3 0 110 6 3 3 0 010-6z"></path>
-                    </svg>
-                    {{ __('Petugas Access') }}
-                </a>
-                @endif
-
-                @if($managerLevelId)
-                <a href="{{ route('settings.edit', $managerLevelId) }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('settings.edit') && (int) request()->route('id') === (int) $managerLevelId ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M6 7v13m12-13v13M8 11h8m-8 4h8"></path>
-                    </svg>
-                    {{ __('Manager Access') }}
-                </a>
-                @endif
-
                 <a href="{{ route('app_settings.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('app_settings.*') ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
@@ -525,7 +576,7 @@
             </nav>
 
             <!-- User Profile (Bottom) -->
-            <div class="border-t border-slate-200 dark:border-slate-800 p-4">
+            <div class="border-t sidebar-border p-4">
                 <div class="flex items-center gap-3">
                     <a href="{{ route('profile') }}" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-800 dark:text-white font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
                         {{ substr(session('name') ?? 'U', 0, 1) }}
@@ -543,7 +594,7 @@
         </aside>
 
         <!-- Main Content Wrapper -->
-        <div class="flex-1 flex flex-col md:ml-64 relative transition-colors duration-300">
+        <div class="flex-1 flex flex-col md:ml-64 relative transition-colors duration-300 min-h-screen">
             
             <!-- Top Header -->
             <header class="h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-20 sticky top-0 transition-colors duration-300">
@@ -665,7 +716,11 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-900 p-6 md:p-8 transition-colors duration-300">
+            <main class="flex-1 overflow-x-hidden bg-slate-50 dark:bg-slate-900 p-6 md:p-8 transition-colors duration-300"
+                @if($appBackgroundImageUrl)
+                    style="background-image:linear-gradient(rgba({{ $overlayRgb[0] }},{{ $overlayRgb[1] }},{{ $overlayRgb[2] }},{{ $appOverlayOpacity }}), rgba({{ $overlayRgb[0] }},{{ $overlayRgb[1] }},{{ $overlayRgb[2] }},{{ $appOverlayOpacity }})), url('{{ $appBackgroundImageUrl }}'); background-size:cover; background-position:center; background-attachment:fixed;"
+                @endif
+            >
                 @if(session('message'))
                 <div class="mb-4 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-between">
                     <span>{{ session('message') }}</span>
@@ -682,6 +737,10 @@
 
                 @yield('content')
             </main>
+
+            <footer class="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-6 py-3 text-center text-sm text-slate-500 dark:text-slate-400">
+                {{ $appFooterText }}
+            </footer>
         </div>
     </div>
     <script>
@@ -738,3 +797,4 @@
     <script src="{{ asset('js/global-table-filter.js') }}"></script>
 </body>
 </html>
+

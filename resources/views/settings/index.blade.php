@@ -18,7 +18,7 @@
 <!-- Glassy Table Container -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="js-smart-table w-full text-left border-collapse" data-filter-fields="role">
+        <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
                     <th class="p-4 font-medium text-center w-16">{{ __('No') }}</th>
@@ -29,7 +29,7 @@
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                 @foreach($levels as $index => $item)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" data-role="{{ strtolower($item->nama_level ?? '') }}">
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                     <td class="p-4 text-slate-400 text-center">{{ $index + 1 }}</td>
                     <td class="p-4">
                         <span class="font-bold text-lg text-slate-900 dark:text-white">{{ $item->nama_level }}</span>

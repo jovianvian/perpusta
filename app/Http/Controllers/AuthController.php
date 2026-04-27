@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Mail\VerifyEmail;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -80,6 +81,88 @@ class AuthController extends Controller
             'action_type' => 'login',
             'edited_by' => $user->id,
             'perubahan' => 'User logged in',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        return redirect('/home');
+    }
+
+    public function redirectToGoogle()
+    {
+        if (empty(config('services.google.client_id')) || empty(config('services.google.client_secret')) || empty(config('services.google.redirect'))) {
+            return redirect('/login')->with('error', 'Google Login belum dikonfigurasi. Hubungi admin.');
+        }
+
+        return Socialite::driver('google')
+            ->stateless()
+            ->scopes(['openid', 'profile', 'email'])
+            ->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Throwable $e) {
+            return redirect('/login')->with('error', 'Gagal login dengan Google. Silakan coba lagi.');
+        }
+
+        $email = trim((string) $googleUser->getEmail());
+        if ($email === '') {
+            return redirect('/login')->with('error', 'Akun Google tidak memiliki email yang valid.');
+        }
+
+        $existing = DB::table('users')->where('email', $email)->first();
+
+        if ($existing) {
+            $updates = [
+                'google_id' => $googleUser->getId(),
+                'avatar' => $googleUser->getAvatar(),
+                'email_verified_at' => $existing->email_verified_at ?: now(),
+                'updated_at' => now(),
+            ];
+
+            if (empty($existing->password)) {
+                $updates['password'] = Hash::make(Str::random(24));
+            }
+
+            DB::table('users')->where('id', $existing->id)->update($updates);
+            $user = DB::table('users')->where('id', $existing->id)->first();
+        } else {
+            $userId = DB::table('users')->insertGetId([
+                'name' => $googleUser->getName() ?: $email,
+                'email' => $email,
+                'password' => Hash::make(Str::random(24)),
+                'level_id' => 3, // default member/peminjam
+                'google_id' => $googleUser->getId(),
+                'avatar' => $googleUser->getAvatar(),
+                'email_verified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('peminjams')->insert([
+                'user_id' => $userId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $user = DB::table('users')->where('id', $userId)->first();
+        }
+
+        Session::put('id', $user->id);
+        Session::put('name', $user->name);
+        Session::put('level', $user->level_id);
+
+        DB::table('edit_histories')->insert([
+            'table_name' => 'users',
+            'row_id' => $user->id,
+            'action_type' => 'login_google',
+            'edited_by' => $user->id,
+            'perubahan' => 'User logged in with Google',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'created_at' => now(),
