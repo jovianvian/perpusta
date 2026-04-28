@@ -90,6 +90,111 @@ class AuthController extends Controller
         return redirect('/home');
     }
 
+    public function showLoginOtpForm()
+    {
+        return view('auth.login-otp-request');
+    }
+
+    public function sendLoginOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = trim((string) $request->email);
+        $user = DB::table('users')->where('email', $email)->first();
+
+        if (!$user) {
+            return back()->with('error', 'Email tidak ditemukan.')->withInput();
+        }
+
+        if (is_null($user->email_verified_at) || empty($user->email_verified_at)) {
+            return back()->with('error', 'Akun belum verifikasi email. Silakan verifikasi dulu.')->withInput();
+        }
+
+        $otp = str_pad((string) rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        DB::table('login_otp_codes')->where('email', $email)->delete();
+        DB::table('login_otp_codes')->insert([
+            'email' => $email,
+            'otp' => $otp,
+            'expires_at' => now()->addMinutes(10),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        try {
+            Mail::send('emails.login_otp_email', ['otp' => $otp, 'name' => $user->name], function ($message) use ($email) {
+                $message->to($email);
+                $message->subject('Kode OTP Login');
+            });
+
+            return redirect()->route('login.otp.verify.form', ['email' => $email])
+                ->with('success', 'Kode OTP login berhasil dikirim ke email.');
+        } catch (\Exception $e) {
+            return redirect()->route('login.otp.verify.form', ['email' => $email])
+                ->with('warning', 'Gagal mengirim email. OTP (Dev Mode): ' . $otp);
+        }
+    }
+
+    public function showLoginOtpVerifyForm(Request $request)
+    {
+        return view('auth.login-otp-verify', [
+            'email' => $request->query('email', ''),
+        ]);
+    }
+
+    public function verifyLoginOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|digits:6',
+        ]);
+
+        $email = trim((string) $request->email);
+        $record = DB::table('login_otp_codes')
+            ->where('email', $email)
+            ->where('otp', $request->otp)
+            ->whereNull('used_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$record) {
+            return back()->with('error', 'Kode OTP tidak valid.')->withInput($request->only('email'));
+        }
+
+        if (Carbon::parse($record->expires_at)->isPast()) {
+            return back()->with('error', 'Kode OTP sudah kedaluwarsa.')->withInput($request->only('email'));
+        }
+
+        $user = DB::table('users')->where('email', $email)->first();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Akun tidak ditemukan.');
+        }
+
+        DB::table('login_otp_codes')->where('id', $record->id)->update([
+            'used_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Session::put('id', $user->id);
+        Session::put('name', $user->name);
+        Session::put('level', $user->level_id);
+
+        DB::table('edit_histories')->insert([
+            'table_name' => 'users',
+            'row_id' => $user->id,
+            'action_type' => 'login_otp_email',
+            'edited_by' => $user->id,
+            'perubahan' => 'User logged in with email OTP',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect('/home');
+    }
+
     public function redirectToGoogle()
     {
         if (empty(config('services.google.client_id')) || empty(config('services.google.client_secret')) || empty(config('services.google.redirect'))) {
@@ -376,22 +481,24 @@ class AuthController extends Controller
 
             if (!$user) return back()->with('error', 'Email tidak ditemukan.');
 
-            $token = Str::random(60);
+            $otp = rand(100000, 999999);
             DB::table('password_resets')->where('email', $request->email)->delete();
             DB::table('password_resets')->insert([
                 'email' => $request->email,
-                'token' => $token,
+                'token' => $otp,
                 'created_at' => now()
             ]);
 
             try {
-                 Mail::send('emails.reset_password', ['token' => $token, 'email' => $request->email], function($message) use($request) {
+                 Mail::send('emails.otp_email', ['otp' => $otp, 'name' => $user->name], function($message) use($request) {
                      $message->to($request->email);
-                     $message->subject('Reset Password Notification');
+                     $message->subject('Kode OTP Reset Password');
                  });
-                 return back()->with('success', 'Link reset password telah dikirim ke email.');
+                 return redirect()->route('password.otp', ['email' => $request->email])
+                    ->with('success', 'Kode OTP berhasil dikirim ke email.');
             } catch (\Exception $e) {
-                 return back()->with('error', 'Gagal mengirim email.');
+                 return redirect()->route('password.otp', ['email' => $request->email])
+                    ->with('warning', 'Gagal mengirim email. OTP (Dev Mode): ' . $otp);
             }
         }
     }

@@ -3,7 +3,7 @@
 @section('content')
 <div class="text-center mb-8">
     <h2 class="text-2xl font-bold text-white">Verify OTP</h2>
-    <p class="text-slate-400 mt-2">Enter the code sent to your WhatsApp</p>
+    <p class="text-slate-400 mt-2">Masukkan kode OTP yang dikirim ke email/WhatsApp Anda</p>
 </div>
 
 @if(session('success'))

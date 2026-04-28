@@ -64,20 +64,24 @@
     </div>
 </form>
 
-<div class="my-6 flex items-center gap-3">
-    <div class="h-px flex-1 bg-slate-700"></div>
-    <span class="text-xs uppercase tracking-wide text-slate-500">{{ __('atau') }}</span>
-    <div class="h-px flex-1 bg-slate-700"></div>
-</div>
+<div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <a href="{{ route('login.otp.form') }}"
+       class="inline-flex items-center justify-center gap-2 border border-indigo-500/30 hover:border-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold py-2.5 px-3 rounded-lg transition-colors text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-2 10H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2z"></path>
+        </svg>
+        <span>{{ __('OTP Email') }}</span>
+    </a>
 
-<a href="{{ route('auth.google.redirect') }}"
-   class="w-full inline-flex items-center justify-center gap-3 border border-slate-600 hover:border-slate-500 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
-    <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-.9 2.2-1.9 2.9l3 2.3c1.8-1.7 2.8-4.1 2.8-7 0-.7-.1-1.4-.2-2H12z"/>
-        <path fill="#34A853" d="M12 21c2.7 0 5-.9 6.7-2.5l-3-2.3c-.8.6-2 .9-3.7.9-2.8 0-5.1-1.9-5.9-4.4l-3.1 2.4C4.7 18.7 8.1 21 12 21z"/>
-        <path fill="#4A90E2" d="M6.1 12.7c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2L3 6.3C2.3 7.7 2 9.2 2 10.7s.3 3 1 4.4l3.1-2.4z"/>
-        <path fill="#FBBC05" d="M12 4.8c1.5 0 2.8.5 3.8 1.5l2.8-2.8C17 2 14.7 1 12 1 8.1 1 4.7 3.3 3 6.3l3.1 2.4c.8-2.5 3.1-4.4 5.9-4.4z"/>
-    </svg>
-    <span>{{ __('Lanjutkan dengan Google') }}</span>
-</a>
+    <a href="{{ route('auth.google.redirect') }}"
+       class="inline-flex items-center justify-center gap-2 border border-slate-600 hover:border-slate-500 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 px-3 rounded-lg transition-colors text-sm">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-.9 2.2-1.9 2.9l3 2.3c1.8-1.7 2.8-4.1 2.8-7 0-.7-.1-1.4-.2-2H12z"/>
+            <path fill="#34A853" d="M12 21c2.7 0 5-.9 6.7-2.5l-3-2.3c-.8.6-2 .9-3.7.9-2.8 0-5.1-1.9-5.9-4.4l-3.1 2.4C4.7 18.7 8.1 21 12 21z"/>
+            <path fill="#4A90E2" d="M6.1 12.7c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2L3 6.3C2.3 7.7 2 9.2 2 10.7s.3 3 1 4.4l3.1-2.4z"/>
+            <path fill="#FBBC05" d="M12 4.8c1.5 0 2.8.5 3.8 1.5l2.8-2.8C17 2 14.7 1 12 1 8.1 1 4.7 3.3 3 6.3l3.1 2.4c.8-2.5 3.1-4.4 5.9-4.4z"/>
+        </svg>
+        <span>{{ __('Google') }}</span>
+    </a>
+</div>
 @endsection
