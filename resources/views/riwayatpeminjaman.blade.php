@@ -17,12 +17,11 @@
                     <th class="p-4 font-medium">{{ __('Loan Date') }}</th>
                     <th class="p-4 font-medium">{{ __('Status') }}</th>
                     <th class="p-4 font-medium">{{ __('Remaining Time') }}</th>
-                    <th class="p-4 font-medium text-center">{{ __('Actions') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="tableRiwayatPeminjaman">
                 <tr>
-                    <td colspan="6" class="p-8 text-center text-slate-500">
+                    <td colspan="5" class="p-8 text-center text-slate-500">
                         <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -47,8 +46,6 @@
         "Completed": "{{ __('Completed') }}",
         "Calculating...": "{{ __('Calculating...') }}",
         "Overdue!": "{{ __('Overdue!') }}",
-        "Request return for this book?": "{{ __('Request return for this book?') }}",
-        "Return": "{{ __('Request Return') }}",
         "Unknown Title": "{{ __('Unknown Title') }}",
         "You haven't borrowed any books yet.": "{{ __('No active loans found.') }}"
     };
@@ -72,7 +69,7 @@
                 countdownIntervals = {};
 
                 if (!data || data.length === 0) {
-                    rows = `<tr><td colspan="6" class="p-8 text-center text-slate-500 dark:text-slate-400">${translations["You haven't borrowed any books yet."]}</td></tr>`;
+                    rows = `<tr><td colspan="5" class="p-8 text-center text-slate-500 dark:text-slate-400">${translations["You haven't borrowed any books yet."]}</td></tr>`;
                 } else {
                     $.each(data, function(index, item) {
                         var statusBadge = '';
@@ -104,22 +101,6 @@
                             deadlineHtml = `<span class="text-slate-500 dark:text-slate-400 text-xs italic">${translations['Waiting Action']}</span>`;
                         }
 
-                        // Action Buttons
-                        var actionBtn = '';
-                        if (statusRaw === 'dipinjam') {
-                            // Using a form for return action
-                            actionBtn = `
-                                <form action="{{ url('/peminjaman/ajukan-kembali') }}/${item.id}" method="POST" onsubmit="return confirm('${translations['Request return for this book?']}');">
-                                    @csrf
-                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-colors shadow-lg shadow-indigo-600/20">
-                                        ${translations['Return']}
-                                    </button>
-                                </form>
-                            `;
-                        } else {
-                            actionBtn = '<span class="text-slate-400 dark:text-slate-500 text-xs">-</span>';
-                        }
-
                         // Correct property name for book title is 'judul' not 'judul_buku' based on DataController query
                         var bookTitle = item.judul || item.judul_buku || translations['Unknown Title'];
 
@@ -130,7 +111,6 @@
                                 <td class="p-4 text-slate-600 dark:text-slate-300">${item.tanggal_pinjam}</td>
                                 <td class="p-4">${statusBadge}</td>
                                 <td class="p-4">${deadlineHtml}</td>
-                                <td class="p-4 text-center">${actionBtn}</td>
                             </tr>
                         `;
                     });
@@ -139,7 +119,7 @@
             },
             error: function(xhr, status, error) {
                 console.error("Error loading history:", error);
-                $('#tableRiwayatPeminjaman').html('<tr><td colspan="6" class="p-8 text-center text-red-500">{{ __('Failed to load data.') }}</td></tr>');
+                $('#tableRiwayatPeminjaman').html('<tr><td colspan="5" class="p-8 text-center text-red-500">{{ __('Failed to load data.') }}</td></tr>');
             }
         });
     }

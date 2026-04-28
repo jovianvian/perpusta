@@ -70,8 +70,9 @@
                     {{-- 4. MENU ANGGOTA (Peminjam: 3)                             --}}
                     {{-- ========================================================= --}}
                     @if($level == 3)
-                    <a href="/koleksi" class="nav-link">📚 Koleksi Buku</a>
-                    <a href="/riwayat" class="nav-link">🕒 Riwayat Peminjaman</a>
+                    <a href="/riwayat" class="nav-link">Riwayat Peminjaman</a>
+                    <a href="/request-buku" class="nav-link">Request Buku</a>
+                    <a href="/report-problem" class="nav-link">Lapor Masalah Buku</a>
                     @endif
 
                     {{-- ========================================================= --}}
@@ -135,10 +136,12 @@
 
             @if($level == 3)
             <div class="nav-mobile-group">
-                <a href="/koleksi">📚 Koleksi Buku</a>
-                <a href="/riwayat">🕒 Riwayat Peminjaman</a>
+                <a href="/riwayat">Riwayat Peminjaman</a>
+                <a href="/request-buku">Request Buku</a>
+                <a href="/report-problem">Lapor Masalah Buku</a>
             </div>
             @endif
 
         </div>
     </header>
+

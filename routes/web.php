@@ -23,6 +23,10 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'registerPost'])->name('register.post');
 Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+Route::get('/login/otp', [AuthController::class, 'showLoginOtpForm'])->name('login.otp.form');
+Route::post('/login/otp/send', [AuthController::class, 'sendLoginOtp'])->name('login.otp.send');
+Route::get('/login/otp/verify', [AuthController::class, 'showLoginOtpVerifyForm'])->name('login.otp.verify.form');
+Route::post('/login/otp/verify', [AuthController::class, 'verifyLoginOtp'])->name('login.otp.verify');
 
 // PASSWORD RESET
 Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
@@ -131,11 +135,7 @@ Route::group(['middleware' => 'web'], function () {
     Route::post('/system-maintenance/restore', [MyController::class, 'restoreDatabase'])->name('system.restore');
 
     // ANGGOTA AREA
-    Route::get('/koleksi', [BookController::class, 'koleksiBuku']);
-    Route::get('/penulis/{id}', [BookController::class, 'detailPenulis']); // Route Profil Penulis
     Route::get('/riwayat', [LoanController::class, 'riwayatPeminjaman']);
-    Route::post('/peminjaman/pinjam/{id}', [LoanController::class, 'pinjamBuku']);
-    Route::post('/peminjaman/ajukan-kembali/{id}', [LoanController::class, 'ajukanKembali']);
 
     // TRASH & REVERT (SUPER ADMIN)
     Route::get('/trash', [MyController::class, 'trash']);

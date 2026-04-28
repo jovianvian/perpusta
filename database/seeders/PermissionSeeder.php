@@ -83,6 +83,27 @@ class PermissionSeeder extends Seeder
             }
         };
 
+        $syncPermissionsByNames = function (int $levelId, array $permissionNames) {
+            $permissionIds = [];
+            if (!empty($permissionNames)) {
+                $permissionIds = DB::table('permissions')
+                    ->whereIn('name', $permissionNames)
+                    ->pluck('id')
+                    ->toArray();
+            }
+
+            DB::table('role_permissions')->where('level_id', $levelId)->delete();
+
+            foreach ($permissionIds as $permissionId) {
+                DB::table('role_permissions')->insert([
+                    'level_id' => $levelId,
+                    'permission_id' => $permissionId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        };
+
         // Assign permissions ke level-level yang ada
         // Super Admin mendapat semua permissions
         $superAdminLevel = DB::table('levels')->whereRaw('LOWER(nama_level) = ?', ['super admin'])->first();
@@ -118,15 +139,11 @@ class PermissionSeeder extends Seeder
             }
         }
 
-        // Peminjam hanya mendapat read permissions untuk buku dan peminjaman sendiri
+        // Peminjam tidak memiliki akses data master/admin.
+        // Peminjam hanya mengakses halaman riwayat member yang tidak memakai permission middleware.
         $peminjamLevel = DB::table('levels')->whereRaw('LOWER(nama_level) = ?', ['peminjam'])->first();
         if ($peminjamLevel) {
-            $peminjamPermissions = DB::table('permissions')
-                ->whereIn('name', ['buku.read', 'peminjaman.read'])
-                ->pluck('id');
-            foreach ($peminjamPermissions as $permissionId) {
-                $assignPermission($peminjamLevel->id, $permissionId);
-            }
+            $syncPermissionsByNames((int) $peminjamLevel->id, []);
         }
 
         // Manager/Pemilik fokus ke laporan
@@ -135,12 +152,7 @@ class PermissionSeeder extends Seeder
             ->orWhereRaw('LOWER(nama_level) = ?', ['pemilik'])
             ->first();
         if ($managerLevel) {
-            $managerPermissions = DB::table('permissions')
-                ->whereIn('name', ['laporan.read', 'laporan.export'])
-                ->pluck('id');
-            foreach ($managerPermissions as $permissionId) {
-                $assignPermission($managerLevel->id, $permissionId);
-            }
+            $syncPermissionsByNames((int) $managerLevel->id, ['laporan.read', 'laporan.export']);
         }
     }
 }
