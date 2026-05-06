@@ -470,6 +470,31 @@
     let scannerTarget = null;
     let html5QrScanner = null;
 
+    function scannerConfig() {
+        return {
+            fps: 15,
+            qrbox: function(viewfinderWidth, viewfinderHeight) {
+                const width = Math.floor(Math.min(viewfinderWidth * 0.9, 480));
+                const height = Math.floor(Math.min(viewfinderHeight * 0.45, 220));
+                return { width, height };
+            },
+            aspectRatio: 1.777,
+            disableFlip: false,
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            },
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.CODE_93,
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E
+            ]
+        };
+    }
+
     function openCameraScanner(target) {
         scannerTarget = target;
         const modal = document.getElementById('cameraScannerModal');
@@ -482,18 +507,24 @@
         }
 
         html5QrScanner = new Html5Qrcode('cameraScannerBox');
-        html5QrScanner.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 260, height: 120 } },
-            (decodedText) => {
-                applyScannedCode(decodedText);
-                closeCameraScanner();
-            },
-            () => {}
-        ).catch(() => {
-            alert('Kamera tidak bisa diakses. Cek izin kamera browser.');
+
+        const onScanSuccess = (decodedText) => {
+            applyScannedCode(decodedText);
             closeCameraScanner();
-        });
+        };
+
+        const onScanFailure = () => {};
+
+        const cfg = scannerConfig();
+        html5QrScanner.start({ facingMode: 'environment' }, cfg, onScanSuccess, onScanFailure)
+            .catch(() => {
+                // Fallback for laptop/webcam devices that don't expose "environment"
+                html5QrScanner.start({ facingMode: 'user' }, cfg, onScanSuccess, onScanFailure)
+                    .catch(() => {
+                        alert('Kamera tidak bisa diakses atau barcode belum terdeteksi. Cek izin kamera, pencahayaan, dan jarak scan.');
+                        closeCameraScanner();
+                    });
+            });
     }
 
     function closeCameraScanner() {
