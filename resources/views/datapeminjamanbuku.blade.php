@@ -54,10 +54,10 @@
         @csrf
         <div class="md:col-span-3">
             <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Scan Return Barcode') }}</label>
-            <input name="barcode" autofocus class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Scan book barcode then press enter') }}">
+            <input id="return_barcode_input" name="barcode" autofocus class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Scan book barcode then press enter') }}">
         </div>
         <div class="flex gap-2">
-            <button type="button" onclick="focusReturnScan()" class="bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-lg">Scan</button>
+            <button type="button" onclick="openCameraScanner('return')" class="bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-lg">Scan</button>
             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg">{{ __('Process Return') }}</button>
         </div>
     </form>
@@ -269,7 +269,7 @@
                         <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Scan Barcode (Optional)') }}</label>
                         <div class="flex gap-2">
                             <input type="text" name="barcode_input" id="barcode_input" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors" placeholder="{{ __('Scan barcode to select book automatically') }}">
-                            <button type="button" onclick="focusLoanScan()" class="bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium px-3 rounded-lg">Scan</button>
+                            <button type="button" onclick="openCameraScanner('loan')" class="bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium px-3 rounded-lg">Scan</button>
                         </div>
                     </div>
 
@@ -343,6 +343,23 @@
                     <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">{{ __('Process Return') }}</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Camera Scanner Modal -->
+<div id="cameraScannerModal" class="fixed inset-0 z-[70] hidden">
+    <div class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm" onclick="closeCameraScanner()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Scan Barcode Kamera</h3>
+                <button type="button" onclick="closeCameraScanner()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+            </div>
+            <div class="p-3">
+                <div id="cameraScannerBox" class="w-full min-h-[280px] rounded-lg overflow-hidden bg-black"></div>
+                <p class="text-xs text-slate-500 mt-2">Izinkan akses kamera browser, lalu arahkan barcode ke kamera.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -437,7 +454,7 @@
     }
 
     function focusReturnScan() {
-        const input = document.querySelector('form[action$="/scan-kembali"] input[name="barcode"]');
+        const input = document.getElementById('return_barcode_input');
         if (!input) return;
         input.focus();
         input.select();
@@ -448,6 +465,63 @@
         if (!input) return;
         input.focus();
         input.select();
+    }
+
+    let scannerTarget = null;
+    let html5QrScanner = null;
+
+    function openCameraScanner(target) {
+        scannerTarget = target;
+        const modal = document.getElementById('cameraScannerModal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+
+        if (typeof Html5Qrcode === 'undefined') {
+            alert('Library scanner belum termuat. Coba refresh halaman.');
+            return;
+        }
+
+        html5QrScanner = new Html5Qrcode('cameraScannerBox');
+        html5QrScanner.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 260, height: 120 } },
+            (decodedText) => {
+                applyScannedCode(decodedText);
+                closeCameraScanner();
+            },
+            () => {}
+        ).catch(() => {
+            alert('Kamera tidak bisa diakses. Cek izin kamera browser.');
+            closeCameraScanner();
+        });
+    }
+
+    function closeCameraScanner() {
+        const modal = document.getElementById('cameraScannerModal');
+        if (modal) modal.classList.add('hidden');
+        if (html5QrScanner) {
+            html5QrScanner.stop().then(() => {
+                html5QrScanner.clear();
+                html5QrScanner = null;
+            }).catch(() => {
+                html5QrScanner = null;
+            });
+        }
+    }
+
+    function applyScannedCode(code) {
+        const value = (code || '').trim();
+        if (!value) return;
+        if (scannerTarget === 'return') {
+            const returnInput = document.getElementById('return_barcode_input');
+            if (returnInput) returnInput.value = value;
+        } else {
+            const loanInput = document.getElementById('barcode_input');
+            if (loanInput) {
+                loanInput.value = value;
+                loanInput.dispatchEvent(new Event('change'));
+            }
+        }
     }
 
     function checkCondition() {
@@ -509,4 +583,5 @@
         document.getElementById('historyContainer').classList.add('hidden');
     }
 </script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 @endsection
