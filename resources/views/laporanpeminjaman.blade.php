@@ -57,6 +57,7 @@
                     <th class="p-4 font-medium">{{ __('Borrower') }}</th>
                     <th class="p-4 font-medium">{{ __('Book Title') }}</th>
                     <th class="p-4 font-medium">{{ __('Category') }}</th>
+                    <th class="p-4 font-medium">{{ __('Transaction Type') }}</th>
                     <th class="p-4 font-medium">{{ __('Loan Date') }}</th>
                     <th class="p-4 font-medium">{{ __('Return Date') }}</th>
                     <th class="p-4 font-medium">{{ __('Status') }}</th>
@@ -69,6 +70,13 @@
                     <td class="p-4 text-slate-700 dark:text-slate-300 font-medium">{{ $l->nama_peminjam }}</td>
                     <td class="p-4 text-indigo-600 dark:text-indigo-400">{{ $l->judul_buku }}</td>
                     <td class="p-4 text-slate-500 dark:text-slate-400">{{ $l->kategori ?? '-' }}</td>
+                    <td class="p-4 text-slate-500 dark:text-slate-400">
+                        @if(($l->transaction_type ?? 'pinjam') === 'baca_di_tempat')
+                            <span class="bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 border border-cyan-500/20 rounded-full px-3 py-1 text-xs font-medium">{{ __('Read In Library') }}</span>
+                        @else
+                            <span class="bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 rounded-full px-3 py-1 text-xs font-medium">{{ __('Borrow (Take Home)') }}</span>
+                        @endif
+                    </td>
                     <td class="p-4 text-slate-500 dark:text-slate-400 tgl-pinjam">{{ $l->tanggal_pinjam }}</td>
                     <td class="p-4 text-slate-500 dark:text-slate-400">{{ $l->tanggal_kembali ?? '-' }}</td>
                     <td class="p-4">
@@ -89,7 +97,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="p-8 text-center text-slate-500">
+                    <td colspan="8" class="p-8 text-center text-slate-500">
                         {{ __('No records found.') }}
                     </td>
                 </tr>

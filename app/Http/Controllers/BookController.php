@@ -12,6 +12,24 @@ use App\Helpers\NotificationHelper;
 
 class BookController extends Controller
 {
+    private function pickRowValue(array $row, array $candidates, $default = null)
+    {
+        foreach ($candidates as $key) {
+            if (!array_key_exists($key, $row)) {
+                continue;
+            }
+            $value = $row[$key];
+            if ($value === null) {
+                continue;
+            }
+            $text = trim((string) $value);
+            if ($text !== '') {
+                return $text;
+            }
+        }
+        return $default;
+    }
+
     private function nextBookNumber(): string
     {
         $prefix = 'SPH-BK-' . now()->format('Y');
@@ -53,33 +71,54 @@ class BookController extends Controller
             $count = 0;
             $failed = 0;
             foreach ($rows as $row) {
-                $penulisId = $this->findOrCreateId('penulis', 'nama_penulis', $row['Penulis'] ?? 'Unknown');
-                $penerbitId = $this->findOrCreateId('penerbit', 'nama_penerbit', $row['Penerbit'] ?? 'Unknown');
-                $kategoriId = $this->findOrCreateId('kategori', 'nama_kategori', $row['Kategori'] ?? 'Umum');
+                $penulisId = $this->findOrCreateId('penulis', 'nama_penulis', $this->pickRowValue($row, ['Penulis', 'penulis', 'Author', 'author'], 'Unknown'));
+                $penerbitId = $this->findOrCreateId('penerbit', 'nama_penerbit', $this->pickRowValue($row, ['Penerbit', 'penerbit', 'Publisher', 'publisher'], 'Unknown'));
+                $kategoriId = $this->findOrCreateId('kategori', 'nama_kategori', $this->pickRowValue($row, ['Kategori', 'kategori', 'Category', 'category'], 'Umum'));
 
-                $isbn = trim((string) ($row['ISBN'] ?? $row['isbn'] ?? '')) ?: null;
-                $nomorBuku = trim((string) ($row['Nomor_Buku'] ?? $row['Nomor Buku'] ?? $row['nomor_buku'] ?? '')) ?: $this->nextBookNumber();
-                $barcode = trim((string) ($row['Barcode'] ?? $row['barcode'] ?? '')) ?: $this->nextBarcode();
+                $isbn = $this->pickRowValue($row, ['ISBN', 'isbn']);
+                $nomorBuku = $this->pickRowValue($row, ['Nomor_Buku', 'Nomor Buku', 'nomor_buku', 'Book_Number', 'book_number']) ?: $this->nextBookNumber();
+                $barcode = $this->pickRowValue($row, ['Barcode', 'barcode', 'Kode_Barcode', 'kode_barcode']) ?: $this->nextBarcode();
+                $judul = $this->pickRowValue($row, ['Judul', 'judul', 'Title', 'title'], 'No Title');
+                $tahun = (int) $this->pickRowValue($row, ['Tahun', 'tahun', 'Year', 'year'], date('Y'));
+                $rakKategori = $this->pickRowValue($row, ['Rak_Kategori', 'rak_kategori', 'Rak', 'rak']);
+                $rakLokasi = $this->pickRowValue($row, ['Lokasi_Rak', 'lokasi_rak', 'Lokasi', 'lokasi']);
+                $bahasa = $this->pickRowValue($row, ['Bahasa', 'bahasa', 'Language', 'language']);
+                $jumlahHalaman = $this->pickRowValue($row, ['Jumlah_Halaman', 'jumlah_halaman', 'Halaman', 'halaman', 'Page_Count', 'page_count']);
+                $stok = (int) $this->pickRowValue($row, ['Stok', 'stok', 'Stock', 'stock'], 0);
+                $kondisi = $this->pickRowValue($row, ['Kondisi', 'kondisi', 'Condition', 'condition'], 'baik');
 
                 try {
-                    DB::table('books')->insert([
-                        'judul' => $row['Judul'] ?? 'No Title',
+                    $existing = DB::table('books')
+                        ->where(function ($q) use ($barcode, $nomorBuku) {
+                            $q->where('barcode', $barcode)
+                              ->orWhere('nomor_buku', $nomorBuku);
+                        })
+                        ->first();
+
+                    $payload = [
+                        'judul' => $judul,
                         'isbn' => $isbn,
                         'nomor_buku' => $nomorBuku,
                         'barcode' => $barcode,
                         'penulis_id' => $penulisId,
                         'penerbit_id' => $penerbitId,
-                        'tahun' => $row['Tahun'] ?? date('Y'),
+                        'tahun' => $tahun,
                         'kategori_id' => $kategoriId,
-                        'rak_kategori' => $row['Rak_Kategori'] ?? $row['Rak'] ?? null,
-                        'rak_lokasi' => $row['Lokasi_Rak'] ?? $row['Lokasi'] ?? null,
-                        'bahasa' => $row['Bahasa'] ?? null,
-                        'jumlah_halaman' => isset($row['Jumlah_Halaman']) ? (int) $row['Jumlah_Halaman'] : (isset($row['Halaman']) ? (int) $row['Halaman'] : null),
-                        'stok' => $row['Stok'] ?? 0,
-                        'kondisi_buku' => $row['Kondisi'] ?? 'baik',
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
+                        'rak_kategori' => $rakKategori,
+                        'rak_lokasi' => $rakLokasi,
+                        'bahasa' => $bahasa,
+                        'jumlah_halaman' => $jumlahHalaman !== null ? (int) $jumlahHalaman : null,
+                        'stok' => $stok,
+                        'kondisi_buku' => $kondisi,
+                        'updated_at' => now(),
+                    ];
+
+                    if ($existing) {
+                        DB::table('books')->where('id', $existing->id)->update($payload);
+                    } else {
+                        $payload['created_at'] = now();
+                        DB::table('books')->insert($payload);
+                    }
                     $count++;
                 } catch (\Throwable $e) {
                     $failed++;

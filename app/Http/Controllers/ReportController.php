@@ -25,7 +25,8 @@ class ReportController extends Controller
                 'books.judul as judul_buku',
                 'peminjaman_buku.tanggal_pinjam',
                 'peminjaman_buku.tanggal_kembali',
-                'peminjaman_buku.status'
+                'peminjaman_buku.status',
+                'peminjaman_buku.transaction_type'
             )
             ->orderBy('peminjaman_buku.id', 'desc');
 
@@ -57,6 +58,7 @@ class ReportController extends Controller
             'peminjaman_buku.tanggal_pinjam', 
             'peminjaman_buku.tanggal_kembali',
             'peminjaman_buku.status', 
+            'peminjaman_buku.transaction_type',
             'kategori.nama_kategori as kategori'
         )
         ->orderBy('peminjaman_buku.id', 'desc');
@@ -86,6 +88,7 @@ class ReportController extends Controller
             'peminjaman_buku.tanggal_pinjam',
             'peminjaman_buku.tanggal_kembali',
             'peminjaman_buku.status',
+            'peminjaman_buku.transaction_type',
             'kategori.nama_kategori as kategori'
         )
         ->orderBy('peminjaman_buku.id', 'desc');
@@ -107,12 +110,13 @@ class ReportController extends Controller
         <table border="1" cellpadding="5" width="100%">
         <tr style="font-weight:bold; background-color:#f2f2f2;">
         <th width="5%">No</th>
-        <th width="20%">Nama Peminjam</th>
+        <th width="18%">Nama Peminjam</th>
         <th width="20%">Judul Buku</th>
         <th width="10%">Kategori</th>
-        <th width="15%">Tanggal Pinjam</th>
-        <th width="15%">Tanggal Kembali</th>
-        <th width="15%">Status</th>
+        <th width="12%">Tanggal Pinjam</th>
+        <th width="12%">Tanggal Kembali</th>
+        <th width="12%">Jenis</th>
+        <th width="11%">Status</th>
         </tr>';
 
         $no = 1;
@@ -125,6 +129,7 @@ class ReportController extends Controller
             <td>'.$data->kategori.'</td>
             <td>'.$data->tanggal_pinjam.'</td>
             <td>'.$data->tanggal_kembali.'</td>
+            <td>'.(($data->transaction_type === 'baca_di_tempat') ? 'Baca di Tempat' : 'Pinjam').'</td>
             <td>'.$data->status.'</td>
             </tr>';
         }
@@ -144,6 +149,7 @@ class ReportController extends Controller
             'books.judul as Judul_Buku',
             'peminjaman_buku.tanggal_pinjam as Tanggal_Pinjam',
             'peminjaman_buku.tanggal_kembali as Tanggal_Kembali',
+            'peminjaman_buku.transaction_type as Jenis_Transaksi',
             'peminjaman_buku.status as Status'
         )
         ->whereNull('peminjaman_buku.deleted_at')

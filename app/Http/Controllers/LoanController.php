@@ -33,7 +33,7 @@ class LoanController extends Controller
             ->orderBy('peminjaman_buku.id', 'desc')
             ->get();
 
-            $books = DB::table('books')->select('id', 'judul')->whereNull('deleted_at')->get();
+            $books = DB::table('books')->select('id', 'judul', 'barcode', 'nomor_buku')->whereNull('deleted_at')->get();
             $users = DB::table('users')->select('id', 'name', 'email')->whereNull('deleted_at')->get();
 
             return view('datapeminjamanbuku', compact('data', 'books', 'users'));
@@ -69,7 +69,12 @@ class LoanController extends Controller
             $barcode = trim((string) $request->barcode_input);
 
             if (!$bookId && $barcode !== '') {
-                $bookId = DB::table('books')->where('barcode', $barcode)->value('id');
+                $bookId = DB::table('books')
+                    ->where(function ($q) use ($barcode) {
+                        $q->whereRaw('LOWER(TRIM(barcode)) = ?', [strtolower($barcode)])
+                          ->orWhereRaw('LOWER(TRIM(nomor_buku)) = ?', [strtolower($barcode)]);
+                    })
+                    ->value('id');
             }
 
             if (!$bookId) {
@@ -122,7 +127,12 @@ class LoanController extends Controller
         ]);
 
         $barcode = trim((string) $request->barcode);
-        $book = DB::table('books')->where('barcode', $barcode)->first();
+        $book = DB::table('books')
+            ->where(function ($q) use ($barcode) {
+                $q->whereRaw('LOWER(TRIM(barcode)) = ?', [strtolower($barcode)])
+                  ->orWhereRaw('LOWER(TRIM(nomor_buku)) = ?', [strtolower($barcode)]);
+            })
+            ->first();
         if (!$book) {
             return redirect('/peminjaman')->with('error', 'Barcode tidak ditemukan.');
         }

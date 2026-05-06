@@ -272,7 +272,7 @@
                         <select name="book_id" id="book_id" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                             <option value="">{{ __('-- Select Book --') }}</option>
                             @foreach($books as $book)
-                            <option value="{{ $book->id }}">{{ $book->judul }}</option>
+                            <option value="{{ $book->id }}" data-barcode="{{ $book->barcode }}" data-nomor="{{ $book->nomor_buku }}">{{ $book->judul }}{{ $book->barcode ? ' ['.$book->barcode.']' : '' }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -351,6 +351,10 @@
         const searchInput = document.getElementById('loanSearchInput');
         const statusFilter = document.getElementById('loanStatusFilter');
         const rows = Array.from(document.querySelectorAll('.loan-row'));
+        const barcodeInput = document.getElementById('barcode_input');
+        const bookSelect = document.getElementById('book_id');
+        const trxSelect = document.getElementById('transaction_type');
+        const returnDate = document.getElementById('tanggal_kembali');
 
         function applyLoanFilters() {
             const query = (searchInput?.value || '').toLowerCase().trim();
@@ -369,6 +373,47 @@
 
         searchInput?.addEventListener('input', applyLoanFilters);
         statusFilter?.addEventListener('change', applyLoanFilters);
+
+        function syncBookByBarcode() {
+            if (!barcodeInput || !bookSelect) return;
+            const needle = (barcodeInput.value || '').trim().toLowerCase();
+            if (!needle) return;
+
+            const option = Array.from(bookSelect.options).find((opt) => {
+                const barcode = (opt.dataset.barcode || '').toLowerCase();
+                const nomor = (opt.dataset.nomor || '').toLowerCase();
+                return barcode === needle || nomor === needle;
+            });
+
+            if (option) {
+                bookSelect.value = option.value;
+            }
+        }
+
+        barcodeInput?.addEventListener('change', syncBookByBarcode);
+        barcodeInput?.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                syncBookByBarcode();
+            }
+        });
+
+        trxSelect?.addEventListener('change', () => {
+            const trx = trxSelect.value;
+            const statusEl = document.getElementById('status');
+            if (!statusEl) return;
+            if (trx === 'baca_di_tempat') {
+                statusEl.value = 'baca_di_tempat';
+                if (returnDate) {
+                    returnDate.value = new Date().toISOString().split('T')[0];
+                }
+            } else if (statusEl.value === 'baca_di_tempat') {
+                statusEl.value = 'dipinjam';
+                if (returnDate) {
+                    returnDate.value = '';
+                }
+            }
+        });
     });
 
     function openReturnModal(id) {
@@ -422,6 +467,7 @@
         document.getElementById('book_id').value = item.book_id;
         document.getElementById('tanggal_pinjam').value = item.tanggal_pinjam;
         document.getElementById('tanggal_kembali').value = item.tanggal_kembali;
+        document.getElementById('transaction_type').value = item.transaction_type || (item.status === 'baca_di_tempat' ? 'baca_di_tempat' : 'pinjam');
         
         // Case insensitive status check or direct value
         let statusVal = item.status;

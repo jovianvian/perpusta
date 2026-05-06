@@ -604,6 +604,68 @@
         if (modal) modal.classList.add('hidden');
     }
 
+    function printBarcodeLabel() {
+        const title = document.getElementById('barcodeBookTitle')?.innerText || '';
+        const code = document.getElementById('barcodeValueText')?.innerText || '';
+        const svg = document.getElementById('barcodeSvg');
+        if (!svg) return;
+
+        const popup = window.open('', '_blank', 'width=520,height=380');
+        if (!popup) return;
+
+        popup.document.write(`
+            <html>
+                <head>
+                    <title>Print Barcode</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+                        h3 { margin: 0 0 8px; font-size: 16px; }
+                        p { margin: 0 0 12px; color: #475569; font-size: 12px; }
+                        .box { border: 1px solid #cbd5e1; border-radius: 12px; padding: 14px; display: inline-block; }
+                        svg { width: 340px; height: 90px; }
+                    </style>
+                </head>
+                <body onload="window.print(); window.onafterprint = function(){ window.close(); };">
+                    <div class="box">
+                        <h3>${title}</h3>
+                        <p>${code}</p>
+                        ${svg.outerHTML}
+                    </div>
+                </body>
+            </html>
+        `);
+        popup.document.close();
+    }
+
+    function downloadBarcodePng() {
+        const svg = document.getElementById('barcodeSvg');
+        const code = (document.getElementById('barcodeValueText')?.innerText || 'barcode').replace(/[^a-zA-Z0-9-_]/g, '_');
+        if (!svg) return;
+
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svg);
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const img = new Image();
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width || 720;
+            canvas.height = img.height || 180;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `barcode-${code}.png`;
+            a.click();
+        };
+        img.src = url;
+    }
+
     function toggleHistoryBook() {
         document.getElementById('historyContainer').classList.toggle('hidden');
         document.getElementById('trashContainer').classList.add('hidden');
@@ -622,7 +684,8 @@
             <p class="text-sm text-slate-500 mb-4" id="barcodeValueText"></p>
             <svg id="barcodeSvg" class="w-full h-24"></svg>
             <div class="mt-4 flex justify-end gap-2">
-                <button type="button" onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">Print</button>
+                <button type="button" onclick="downloadBarcodePng()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg">{{ __('Download PNG') }}</button>
+                <button type="button" onclick="printBarcodeLabel()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">{{ __('Print') }}</button>
                 <button type="button" onclick="closeBarcodeModal()" class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 rounded-lg">{{ __('Close') }}</button>
             </div>
         </div>

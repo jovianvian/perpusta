@@ -17,6 +17,7 @@
             <th>Nama Peminjam</th>
             <th>Judul Buku</th>
             <th>Kategori</th>
+            <th>Jenis Transaksi</th>
             <th>Tanggal Pinjam</th>
             <th>Tanggal Kembali</th>
             <th>Status</th>
@@ -29,13 +30,16 @@
             <td>{{ $l->nama_peminjam }}</td>
             <td>{{ $l->judul_buku }}</td>
             <td>{{ $l->kategori ?? '-' }}</td>
+            <td>{{ ($l->transaction_type ?? 'pinjam') === 'baca_di_tempat' ? 'Baca di Tempat' : 'Pinjam (Bawa Pulang)' }}</td>
             <td>{{ $l->tanggal_pinjam }}</td>
             <td>{{ $l->tanggal_kembali ?? '-' }}</td>
             <td>
-                @if($l->status == 'Dipinjam')
-                   {{ $l->status }}
-                @elseif($l->status == 'Dikembalikan')
-                    {{ $l->status }}
+                @if(strtolower((string) $l->status) == 'dipinjam')
+                   Dipinjam
+                @elseif(strtolower((string) $l->status) == 'dikembalikan')
+                    Dikembalikan
+                @elseif(strtolower((string) $l->status) == 'baca_di_tempat')
+                    Baca di Tempat
                 @else
                     {{ $l->status }}
                 @endif
@@ -43,7 +47,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="7" style="text-align:center;">Tidak ada data peminjaman ditemukan.</td>
+            <td colspan="8" style="text-align:center;">Tidak ada data peminjaman ditemukan.</td>
         </tr>
         @endforelse
     </tbody>
