@@ -1,4 +1,11 @@
 (() => {
+  const i18n = window.smartTableI18n || {
+    search: 'Search',
+    searchPlaceholder: 'Search table...',
+    reset: 'Reset',
+    all: 'All',
+  };
+
   function textOf(el) {
     return (el?.textContent || '').trim();
   }
@@ -17,8 +24,8 @@
     const searchBox = document.createElement('div');
     searchBox.className = 'md:col-span-2';
     searchBox.innerHTML = `
-      <label class="block text-xs font-semibold text-slate-500 mb-1">Search</label>
-      <input type="text" class="js-smart-search w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="Search table...">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">${i18n.search}</label>
+      <input type="text" class="js-smart-search w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="${i18n.searchPlaceholder}">
     `;
 
     const filtersHost = document.createElement('div');
@@ -26,7 +33,7 @@
 
     const resetWrap = document.createElement('div');
     resetWrap.className = 'sm:col-span-2 flex justify-end';
-    resetWrap.innerHTML = '<button type="button" class="js-smart-reset bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-sm font-medium rounded-lg px-3 py-2">Reset</button>';
+    resetWrap.innerHTML = `<button type="button" class="js-smart-reset bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-sm font-medium rounded-lg px-3 py-2">${i18n.reset}</button>`;
 
     row.appendChild(searchBox);
     row.appendChild(filtersHost);
@@ -71,7 +78,7 @@
       col.innerHTML = `
         <label class="block text-xs font-semibold text-slate-500 mb-1">${field.charAt(0).toUpperCase() + field.slice(1)}</label>
         <select class="js-smart-filter w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" data-field="${field}">
-          <option value="">All</option>
+          <option value="">${i18n.all}</option>
         </select>
       `;
       const select = col.querySelector('select');
@@ -92,7 +99,7 @@
         });
 
         const sorted = Array.from(values).sort((a, b) => a.localeCompare(b));
-        select.innerHTML = '<option value="">All</option>' + sorted.map((v) => `<option value="${v}">${v}</option>`).join('');
+        select.innerHTML = `<option value="">${i18n.all}</option>` + sorted.map((v) => `<option value="${v}">${v}</option>`).join('');
         if (current && sorted.includes(current)) select.value = current;
       });
     }

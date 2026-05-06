@@ -42,6 +42,7 @@
                 <option value="dikembalikan">{{ __('Returned') }}</option>
                 <option value="pending_pinjam">{{ __('Pending Approval') }}</option>
                 <option value="pending_kembali">{{ __('Request Return') }}</option>
+                <option value="baca_di_tempat">{{ __('Read In Library') }}</option>
             </select>
         </div>
     </div>

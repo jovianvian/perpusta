@@ -100,9 +100,9 @@
                             @endif
                             <div>
                                 <div class="font-medium text-slate-800 dark:text-white">{{ $item->judul }}</div>
-                                <div class="text-xs text-slate-500">{{ $item->tahun }} • ISBN: {{ $item->isbn ?? '-' }}</div>
-                                <div class="text-xs text-slate-500">No Buku: {{ $item->nomor_buku ?? '-' }} • Barcode: {{ $item->barcode ?? '-' }}</div>
-                                <div class="text-xs text-slate-500">Rak: {{ $item->rak_kategori ?? '-' }} {{ $item->rak_lokasi ? '('.$item->rak_lokasi.')' : '' }}</div>
+                                <div class="text-xs text-slate-500">{{ $item->tahun }} • {{ __('ISBN') }}: {{ $item->isbn ?? '-' }}</div>
+                                <div class="text-xs text-slate-500">{{ __('Book Number') }}: {{ $item->nomor_buku ?? '-' }} • {{ __('Barcode') }}: {{ $item->barcode ?? '-' }}</div>
+                                <div class="text-xs text-slate-500">{{ __('Rack') }}: {{ $item->rak_kategori ?? '-' }} {{ $item->rak_lokasi ? '('.$item->rak_lokasi.')' : '' }}</div>
                                 @if($item->file_buku)
                                     <a href="{{ asset('storage/' . $item->file_buku) }}" target="_blank" class="inline-flex items-center gap-1 mt-1 text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -135,7 +135,7 @@
                     <td class="p-4">
                         <div class="flex items-center justify-center gap-2">
                             @if($item->barcode)
-                            <button type="button" onclick="showBarcode('{{ $item->barcode }}','{{ addslashes($item->judul) }}')" class="p-2 text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors" title="Barcode">
+                            <button type="button" onclick="showBarcode('{{ $item->barcode }}','{{ addslashes($item->judul) }}')" class="p-2 text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors" title="{{ __('Barcode') }}">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M8 7v10M12 7v10M16 7v10M20 7v10"></path></svg>
                             </button>
                             @endif
@@ -253,7 +253,7 @@
         <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-200 dark:border-slate-700">
             
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white" id="modalTitle">Add New Book</h3>
+                <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white" id="modalTitle">{{ __('Add New Book') }}</h3>
                 <button type="button" onclick="closeBookModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -270,37 +270,37 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Title -->
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Book Title</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Book Title') }}</label>
                             <input type="text" name="judul" id="judul" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 py-2.5 px-4 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">ISBN</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('ISBN') }}</label>
                             <input type="text" name="isbn" id="isbn"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Nomor Buku</label>
-                            <input type="text" name="nomor_buku" id="nomor_buku" placeholder="Auto jika kosong"
+                            <input type="text" name="nomor_buku" id="nomor_buku" placeholder="{{ __('Auto if empty') }}"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Barcode</label>
-                            <input type="text" name="barcode" id="barcode" placeholder="Auto jika kosong"
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Barcode') }}</label>
+                            <input type="text" name="barcode" id="barcode" placeholder="{{ __('Auto if empty') }}"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Bahasa</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Language') }}</label>
                             <input type="text" name="bahasa" id="bahasa"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
 
                         <!-- Author -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Author</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Author') }}</label>
                             <select name="penulis_id" id="penulis_id" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                                <option value="">Select Author</option>
+                                <option value="">{{ __('Select Author') }}</option>
                                 @foreach($penulis as $p)
                                 <option value="{{ $p->id }}">{{ $p->nama_penulis }}</option>
                                 @endforeach
@@ -309,10 +309,10 @@
 
                         <!-- Publisher -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Publisher</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Publisher') }}</label>
                             <select name="penerbit_id" id="penerbit_id" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                                <option value="">Select Publisher</option>
+                                <option value="">{{ __('Select Publisher') }}</option>
                                 @foreach($penerbit as $p)
                                 <option value="{{ $p->id }}">{{ $p->nama_penerbit }}</option>
                                 @endforeach
@@ -321,12 +321,12 @@
 
                         <!-- Year & Stock -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Year</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Year') }}</label>
                             <input type="number" name="tahun" id="tahun" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 py-2.5 px-4 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Stock</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Stock') }}</label>
                             <input type="number" name="stok" id="stok" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 py-2.5 px-4 transition-colors">
                         </div>
@@ -336,24 +336,24 @@
                             <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Category') }}</label>
                             <select name="kategori_id" id="kategori_id" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                                <option value="">Select Category</option>
+                                <option value="">{{ __('Select Category') }}</option>
                                 @foreach($kategori as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama_kategori }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Kategori Rak</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Rack Category') }}</label>
                             <input type="text" name="rak_kategori" id="rak_kategori"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Lokasi Rak</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Rack Location') }}</label>
                             <input type="text" name="rak_lokasi" id="rak_lokasi"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Jumlah Halaman</label>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Page Count') }}</label>
                             <input type="number" name="jumlah_halaman" id="jumlah_halaman"
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                         </div>
@@ -618,12 +618,12 @@
     <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeBarcodeModal()"></div>
     <div class="flex min-h-full items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-slate-200 dark:border-slate-700">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-1" id="barcodeBookTitle">Barcode</h3>
+            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-1" id="barcodeBookTitle">{{ __('Barcode') }}</h3>
             <p class="text-sm text-slate-500 mb-4" id="barcodeValueText"></p>
             <svg id="barcodeSvg" class="w-full h-24"></svg>
             <div class="mt-4 flex justify-end gap-2">
                 <button type="button" onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">Print</button>
-                <button type="button" onclick="closeBarcodeModal()" class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 rounded-lg">Close</button>
+                <button type="button" onclick="closeBarcodeModal()" class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 rounded-lg">{{ __('Close') }}</button>
             </div>
         </div>
     </div>

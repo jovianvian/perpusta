@@ -264,4 +264,16 @@
     "Additional Fine (Rp)": "Denda Tambahan (Rp)",
     "Enter fine amount": "Masukkan nominal denda",
     "Fine for late return will be calculated automatically.": "Denda keterlambatan dihitung otomatis."
+    ,"Search table...": "Cari di tabel..."
+    ,"Book Number": "Nomor Buku"
+    ,"Rack": "Rak"
+    ,"Auto if empty": "Otomatis jika kosong"
+    ,"Language": "Bahasa"
+    ,"Select Author": "Pilih Penulis"
+    ,"Select Publisher": "Pilih Penerbit"
+    ,"Select Category": "Pilih Kategori"
+    ,"Rack Category": "Kategori Rak"
+    ,"Rack Location": "Lokasi Rak"
+    ,"Page Count": "Jumlah Halaman"
+    ,"Close": "Tutup"
 }

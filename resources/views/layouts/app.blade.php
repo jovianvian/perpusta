@@ -788,6 +788,14 @@
             });
         });
     </script>
+    <script>
+        window.smartTableI18n = {
+            search: @json(__('Search')),
+            searchPlaceholder: @json(__('Search table...')),
+            reset: @json(__('Reset')),
+            all: @json(__('All')),
+        };
+    </script>
     <script src="{{ asset('js/global-table-filter.js') }}"></script>
 </body>
 </html>
