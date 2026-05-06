@@ -104,6 +104,7 @@ Route::group(['middleware' => 'web'], function () {
     // PEMINJAMAN (ADMIN)
     Route::get('/peminjaman', [LoanController::class, 'peminjaman'])->middleware('permission:peminjaman.read');
     Route::post('/peminjaman/store', [LoanController::class, 'simpanPeminjaman'])->middleware('permission:peminjaman.create');
+    Route::post('/peminjaman/scan-kembali', [LoanController::class, 'scanKembalikan'])->middleware('permission:peminjaman.update');
     Route::post('/peminjaman/update', [LoanController::class, 'updatePeminjaman'])->middleware('permission:peminjaman.update');
     Route::get('/peminjaman/hapus/{id}', [LoanController::class, 'hapusPeminjaman'])->middleware('permission:peminjaman.delete');
     Route::get('/peminjaman/kembalikan/{id}', [LoanController::class, 'kembalikanPeminjaman'])->middleware('permission:peminjaman.update');

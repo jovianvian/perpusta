@@ -78,10 +78,12 @@ class DataController extends Controller
             ->select(
                 'peminjaman_buku.id',
                 'books.judul',
+                'books.barcode',
                 'users.name',
                 'peminjaman_buku.tanggal_pinjam',
                 'peminjaman_buku.tanggal_kembali',
                 'peminjaman_buku.status',
+                'peminjaman_buku.transaction_type',
                 'peminjaman_buku.book_id',
                 'peminjaman_buku.user_id'
             );

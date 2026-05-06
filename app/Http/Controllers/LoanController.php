@@ -19,10 +19,13 @@ class LoanController extends Controller
             ->select(
                 'peminjaman_buku.id',
                 'books.judul as judul_buku',
+                'books.barcode',
+                'books.nomor_buku',
                 'users.name as nama_peminjam',
                 'peminjaman_buku.tanggal_pinjam',
                 'peminjaman_buku.tanggal_kembali',
                 'peminjaman_buku.status',
+                'peminjaman_buku.transaction_type',
                 'peminjaman_buku.book_id',
                 'peminjaman_buku.user_id'
             )
@@ -55,22 +58,97 @@ class LoanController extends Controller
     public function simpanPeminjaman(Request $request)
     {
         if (session('id') > 0) {
-            DB::table('peminjaman_buku')->insert([
-                'book_id' => $request->book_id,
-                'user_id' => $request->user_id,
-                'tanggal_pinjam' => now(),
-                'tanggal_kembali' => now()->addWeek(),
-                'status' => 'dipinjam',
-                'created_at' => now()
+            $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'transaction_type' => 'nullable|in:pinjam,baca_di_tempat',
+                'book_id' => 'nullable|exists:books,id',
+                'barcode_input' => 'nullable|string|max:64',
             ]);
 
-            // Kurangi stok buku
-            DB::table('books')->where('id', $request->book_id)->decrement('stok', 1);
+            $bookId = $request->book_id;
+            $barcode = trim((string) $request->barcode_input);
 
-            return redirect('/peminjaman')->with('success', 'Peminjaman ditambahkan!');
+            if (!$bookId && $barcode !== '') {
+                $bookId = DB::table('books')->where('barcode', $barcode)->value('id');
+            }
+
+            if (!$bookId) {
+                return redirect('/peminjaman')->with('error', 'Buku tidak ditemukan. Pilih buku atau scan barcode yang valid.');
+            }
+
+            $book = DB::table('books')->where('id', $bookId)->first();
+            if (!$book) {
+                return redirect('/peminjaman')->with('error', 'Data buku tidak ditemukan.');
+            }
+
+            $transactionType = $request->transaction_type ?: 'pinjam';
+            $status = $transactionType === 'baca_di_tempat' ? 'baca_di_tempat' : 'dipinjam';
+            $tanggalKembali = $transactionType === 'baca_di_tempat' ? now() : now()->addWeek();
+
+            if ($transactionType === 'pinjam' && (int) $book->stok <= 0) {
+                return redirect('/peminjaman')->with('error', 'Stok buku habis, tidak bisa dipinjam.');
+            }
+
+            DB::table('peminjaman_buku')->insert([
+                'book_id' => $bookId,
+                'user_id' => $request->user_id,
+                'tanggal_pinjam' => now(),
+                'tanggal_kembali' => $tanggalKembali,
+                'status' => $status,
+                'transaction_type' => $transactionType,
+                'barcode_scanned' => $barcode !== '' ? $barcode : ($book->barcode ?? null),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            if ($transactionType === 'pinjam') {
+                DB::table('books')->where('id', $bookId)->decrement('stok', 1);
+            }
+
+            return redirect('/peminjaman')->with('success', $transactionType === 'baca_di_tempat' ? 'Kunjungan baca di tempat berhasil dicatat.' : 'Peminjaman ditambahkan!');
         } else {
             return view('404');
         }
+    }
+
+    public function scanKembalikan(Request $request)
+    {
+        if (!session('id')) {
+            return view('404');
+        }
+
+        $request->validate([
+            'barcode' => 'required|string|max:64',
+        ]);
+
+        $barcode = trim((string) $request->barcode);
+        $book = DB::table('books')->where('barcode', $barcode)->first();
+        if (!$book) {
+            return redirect('/peminjaman')->with('error', 'Barcode tidak ditemukan.');
+        }
+
+        $activeLoan = DB::table('peminjaman_buku')
+            ->where('book_id', $book->id)
+            ->where('status', 'dipinjam')
+            ->whereNull('deleted_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$activeLoan) {
+            return redirect('/peminjaman')->with('error', 'Tidak ada transaksi pinjam aktif untuk barcode ini.');
+        }
+
+        DB::table('peminjaman_buku')
+            ->where('id', $activeLoan->id)
+            ->update([
+                'status' => 'dikembalikan',
+                'tanggal_kembali' => now(),
+                'updated_at' => now(),
+            ]);
+
+        DB::table('books')->where('id', $book->id)->increment('stok', 1);
+
+        return redirect('/peminjaman')->with('success', 'Pengembalian via scan barcode berhasil.');
     }
 
     public function editPeminjaman($id)
@@ -96,7 +174,8 @@ class LoanController extends Controller
                 'user_id' => $request->user_id,
                 'tanggal_pinjam' => $request->tanggal_pinjam,
                 'tanggal_kembali' => $request->tanggal_kembali,
-                'status' => $request->status
+                'status' => $request->status,
+                'transaction_type' => $request->transaction_type ?: 'pinjam',
             ];
 
             DB::table('peminjaman_buku')->where('id', $request->id)->update($updateData);

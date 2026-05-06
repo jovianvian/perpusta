@@ -47,6 +47,19 @@
     </div>
 </div>
 
+@if (app(\App\Helpers\PermissionHelper::class)->hasPermission('peminjaman.update'))
+<div class="mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+    <form action="{{ url('/peminjaman/scan-kembali') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        @csrf
+        <div class="md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Scan Barcode Pengembalian</label>
+            <input name="barcode" autofocus class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="Scan barcode buku lalu enter">
+        </div>
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg">Proses Kembali</button>
+    </form>
+</div>
+@endif
+
 <!-- Main Table -->
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
     <div class="overflow-x-auto">
@@ -82,6 +95,8 @@
                             <span class="bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 rounded-full px-3 py-1 text-xs font-medium">{{ __('Pending Approval') }}</span>
                         @elseif($item->status == 'pending_kembali')
                             <span class="bg-purple-500/10 text-purple-500 dark:text-purple-400 border border-purple-500/20 rounded-full px-3 py-1 text-xs font-medium">{{ __('Request Return') }}</span>
+                        @elseif($item->status == 'baca_di_tempat')
+                            <span class="bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 border border-cyan-500/20 rounded-full px-3 py-1 text-xs font-medium">Baca di Tempat</span>
                         @else
                             <span class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full px-3 py-1 text-xs font-medium">{{ $item->status }}</span>
                         @endif
@@ -239,6 +254,19 @@
                     </div>
                     
                     <div>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Jenis Transaksi</label>
+                        <select name="transaction_type" id="transaction_type" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                            <option value="pinjam">Pinjam (Bawa Pulang)</option>
+                            <option value="baca_di_tempat">Baca di Tempat</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Scan Barcode (Opsional)</label>
+                        <input type="text" name="barcode_input" id="barcode_input" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors" placeholder="Scan barcode untuk pilih buku otomatis">
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Book</label>
                         <select name="book_id" id="book_id" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                             <option value="">-- Select Book --</option>
@@ -262,8 +290,9 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Status</label>
                         <select name="status" id="status" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                            <option value="Dipinjam">Dipinjam (Active)</option>
-                            <option value="Dikembalikan">Dikembalikan (Returned)</option>
+                            <option value="dipinjam">Dipinjam (Active)</option>
+                            <option value="dikembalikan">Dikembalikan (Returned)</option>
+                            <option value="baca_di_tempat">Baca di Tempat</option>
                         </select>
                     </div>
                 </div>

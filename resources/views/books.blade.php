@@ -100,7 +100,9 @@
                             @endif
                             <div>
                                 <div class="font-medium text-slate-800 dark:text-white">{{ $item->judul }}</div>
-                                <div class="text-xs text-slate-500">{{ $item->tahun }}</div>
+                                <div class="text-xs text-slate-500">{{ $item->tahun }} • ISBN: {{ $item->isbn ?? '-' }}</div>
+                                <div class="text-xs text-slate-500">No Buku: {{ $item->nomor_buku ?? '-' }} • Barcode: {{ $item->barcode ?? '-' }}</div>
+                                <div class="text-xs text-slate-500">Rak: {{ $item->rak_kategori ?? '-' }} {{ $item->rak_lokasi ? '('.$item->rak_lokasi.')' : '' }}</div>
                                 @if($item->file_buku)
                                     <a href="{{ asset('storage/' . $item->file_buku) }}" target="_blank" class="inline-flex items-center gap-1 mt-1 text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -132,6 +134,11 @@
                     </td>
                     <td class="p-4">
                         <div class="flex items-center justify-center gap-2">
+                            @if($item->barcode)
+                            <button type="button" onclick="showBarcode('{{ $item->barcode }}','{{ addslashes($item->judul) }}')" class="p-2 text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors" title="Barcode">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M8 7v10M12 7v10M16 7v10M20 7v10"></path></svg>
+                            </button>
+                            @endif
                             @if (app(\App\Helpers\PermissionHelper::class)->hasPermission('buku.update'))
                             <button onclick="editBook({{ json_encode($item) }})" class="p-2 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors" title="{{ __('Edit') }}">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,6 +274,26 @@
                             <input type="text" name="judul" id="judul" required
                                 class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 py-2.5 px-4 transition-colors">
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">ISBN</label>
+                            <input type="text" name="isbn" id="isbn"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Nomor Buku</label>
+                            <input type="text" name="nomor_buku" id="nomor_buku" placeholder="Auto jika kosong"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Barcode</label>
+                            <input type="text" name="barcode" id="barcode" placeholder="Auto jika kosong"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Bahasa</label>
+                            <input type="text" name="bahasa" id="bahasa"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
 
                         <!-- Author -->
                         <div>
@@ -313,6 +340,30 @@
                                 @foreach($kategori as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama_kategori }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Kategori Rak</label>
+                            <input type="text" name="rak_kategori" id="rak_kategori"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Lokasi Rak</label>
+                            <input type="text" name="rak_lokasi" id="rak_lokasi"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Jumlah Halaman</label>
+                            <input type="number" name="jumlah_halaman" id="jumlah_halaman"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Kondisi</label>
+                            <select name="kondisi_buku" id="kondisi_buku"
+                                class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
+                                <option value="baik">Baik</option>
+                                <option value="rusak_ringan">Rusak Ringan</option>
+                                <option value="rusak">Rusak</option>
                             </select>
                         </div>
 
@@ -385,8 +436,10 @@
                 @csrf
                 <div class="p-6 space-y-4">
                     <p class="text-sm text-slate-500 dark:text-slate-400">
-                        Upload file Excel (.xlsx, .xls, .csv) dengan format kolom: 
+                        Upload file Excel/CSV dengan format minimal:
                         <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">Judul, Penulis, Penerbit, Tahun, Kategori, Stok</span>.
+                        Kolom opsional:
+                        <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">ISBN, Nomor_Buku, Barcode, Rak_Kategori, Lokasi_Rak, Bahasa, Jumlah_Halaman, Kondisi</span>.
                     </p>
                     <input type="file" name="file_excel" accept=".xlsx, .xls, .csv" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-slate-300">
                 </div>
@@ -502,6 +555,14 @@
         document.getElementById('tahun').value = book.tahun;
         document.getElementById('stok').value = book.stok;
         document.getElementById('kategori_id').value = book.kategori_id;
+        document.getElementById('isbn').value = book.isbn ?? '';
+        document.getElementById('nomor_buku').value = book.nomor_buku ?? '';
+        document.getElementById('barcode').value = book.barcode ?? '';
+        document.getElementById('bahasa').value = book.bahasa ?? '';
+        document.getElementById('rak_kategori').value = book.rak_kategori ?? '';
+        document.getElementById('rak_lokasi').value = book.rak_lokasi ?? '';
+        document.getElementById('jumlah_halaman').value = book.jumlah_halaman ?? '';
+        document.getElementById('kondisi_buku').value = book.kondisi_buku ?? 'baik';
         
         // Handle Image Preview if Exists
         if (book.foto) {
@@ -527,6 +588,22 @@
         document.getElementById('bookModal').classList.add('hidden');
     }
 
+    function showBarcode(code, title) {
+        const modal = document.getElementById('barcodePreviewModal');
+        if (!modal) return;
+        document.getElementById('barcodeBookTitle').innerText = title;
+        document.getElementById('barcodeValueText').innerText = code;
+        modal.classList.remove('hidden');
+        if (window.JsBarcode) {
+            JsBarcode('#barcodeSvg', code, { format: 'CODE128', displayValue: true, height: 60 });
+        }
+    }
+
+    function closeBarcodeModal() {
+        const modal = document.getElementById('barcodePreviewModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     function toggleHistoryBook() {
         document.getElementById('historyContainer').classList.toggle('hidden');
         document.getElementById('trashContainer').classList.add('hidden');
@@ -537,4 +614,19 @@
         document.getElementById('historyContainer').classList.add('hidden');
     }
 </script>
+<div id="barcodePreviewModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeBarcodeModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-1" id="barcodeBookTitle">Barcode</h3>
+            <p class="text-sm text-slate-500 mb-4" id="barcodeValueText"></p>
+            <svg id="barcodeSvg" class="w-full h-24"></svg>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">Print</button>
+                <button type="button" onclick="closeBarcodeModal()" class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2 rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 @endsection

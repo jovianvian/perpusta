@@ -12,6 +12,31 @@ use App\Helpers\NotificationHelper;
 
 class BookController extends Controller
 {
+    private function nextBookNumber(): string
+    {
+        $prefix = 'SPH-BK-' . now()->format('Y');
+        $last = DB::table('books')
+            ->where('nomor_buku', 'like', $prefix . '-%')
+            ->orderByDesc('id')
+            ->value('nomor_buku');
+
+        $next = 1;
+        if ($last && preg_match('/(\d+)$/', $last, $m)) {
+            $next = ((int) $m[1]) + 1;
+        }
+
+        return sprintf('%s-%06d', $prefix, $next);
+    }
+
+    private function nextBarcode(): string
+    {
+        do {
+            $code = 'SPH' . now()->format('ymd') . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+        } while (DB::table('books')->where('barcode', $code)->exists());
+
+        return $code;
+    }
+
     // ------------------- IMPORT EXCEL -------------------
     public function import(Request $request)
     {
@@ -26,23 +51,39 @@ class BookController extends Controller
             $rows = SimpleExcelReader::create($file->getPathname())->getRows();
 
             $count = 0;
+            $failed = 0;
             foreach ($rows as $row) {
-                // ... (Existing Import Logic)
                 $penulisId = $this->findOrCreateId('penulis', 'nama_penulis', $row['Penulis'] ?? 'Unknown');
                 $penerbitId = $this->findOrCreateId('penerbit', 'nama_penerbit', $row['Penerbit'] ?? 'Unknown');
                 $kategoriId = $this->findOrCreateId('kategori', 'nama_kategori', $row['Kategori'] ?? 'Umum');
 
-                DB::table('books')->insert([
-                    'judul' => $row['Judul'] ?? 'No Title',
-                    'penulis_id' => $penulisId,
-                    'penerbit_id' => $penerbitId,
-                    'tahun' => $row['Tahun'] ?? date('Y'),
-                    'kategori_id' => $kategoriId,
-                    'stok' => $row['Stok'] ?? 0,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-                $count++;
+                $isbn = trim((string) ($row['ISBN'] ?? $row['isbn'] ?? '')) ?: null;
+                $nomorBuku = trim((string) ($row['Nomor_Buku'] ?? $row['Nomor Buku'] ?? $row['nomor_buku'] ?? '')) ?: $this->nextBookNumber();
+                $barcode = trim((string) ($row['Barcode'] ?? $row['barcode'] ?? '')) ?: $this->nextBarcode();
+
+                try {
+                    DB::table('books')->insert([
+                        'judul' => $row['Judul'] ?? 'No Title',
+                        'isbn' => $isbn,
+                        'nomor_buku' => $nomorBuku,
+                        'barcode' => $barcode,
+                        'penulis_id' => $penulisId,
+                        'penerbit_id' => $penerbitId,
+                        'tahun' => $row['Tahun'] ?? date('Y'),
+                        'kategori_id' => $kategoriId,
+                        'rak_kategori' => $row['Rak_Kategori'] ?? $row['Rak'] ?? null,
+                        'rak_lokasi' => $row['Lokasi_Rak'] ?? $row['Lokasi'] ?? null,
+                        'bahasa' => $row['Bahasa'] ?? null,
+                        'jumlah_halaman' => isset($row['Jumlah_Halaman']) ? (int) $row['Jumlah_Halaman'] : (isset($row['Halaman']) ? (int) $row['Halaman'] : null),
+                        'stok' => $row['Stok'] ?? 0,
+                        'kondisi_buku' => $row['Kondisi'] ?? 'baik',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    $count++;
+                } catch (\Throwable $e) {
+                    $failed++;
+                }
             }
 
             DiscordHelper::sendNotification("User **" . session('name') . "** baru saja mengimport **$count** buku baru via Excel.", "Import Data Buku", 3066993); // Green
@@ -50,13 +91,13 @@ class BookController extends Controller
                 NotificationHelper::notifyBorrowers(
                     'Koleksi Buku Diperbarui',
                     "Ada {$count} buku baru ditambahkan ke perpustakaan.",
-                    '/koleksi',
+                    '/riwayat',
                     'info',
                     (int) session('id')
                 );
             }
 
-            return back()->with('success', "Berhasil mengimport $count buku!");
+            return back()->with('success', "Import selesai. Berhasil: $count, gagal: $failed.");
         }
         return view('404');
     }
@@ -131,6 +172,14 @@ class BookController extends Controller
     public function simpant(Request $request)
     {
         if (session('id') > 0) {
+            $request->validate([
+                'judul' => 'required|string|max:255',
+                'isbn' => 'nullable|string|max:32',
+                'nomor_buku' => 'nullable|string|max:64|unique:books,nomor_buku',
+                'barcode' => 'nullable|string|max:64|unique:books,barcode',
+                'stok' => 'required|integer|min:0',
+            ]);
+
             $fotoPath = null;
             if ($request->hasFile('foto')) {
                 $fotoPath = $request->file('foto')->store('covers', 'public');
@@ -141,13 +190,24 @@ class BookController extends Controller
                 $fileBukuPath = $request->file('file_buku')->store('ebooks', 'public');
             }
 
+            $nomorBuku = $request->nomor_buku ?: $this->nextBookNumber();
+            $barcode = $request->barcode ?: $this->nextBarcode();
+
             DB::table('books')->insert([
                 'judul' => $request->judul,
+                'isbn' => $request->isbn,
+                'nomor_buku' => $nomorBuku,
+                'barcode' => $barcode,
                 'penulis_id' => $request->penulis_id,
                 'penerbit_id' => $request->penerbit_id,
                 'tahun' => $request->tahun,
                 'kategori_id' => $request->kategori_id,
+                'rak_kategori' => $request->rak_kategori,
+                'rak_lokasi' => $request->rak_lokasi,
+                'bahasa' => $request->bahasa,
+                'jumlah_halaman' => $request->jumlah_halaman,
                 'stok' => $request->stok,
+                'kondisi_buku' => $request->kondisi_buku ?? 'baik',
                 'foto' => $fotoPath,
                 'file_buku' => $fileBukuPath
             ]);
@@ -166,7 +226,7 @@ class BookController extends Controller
             NotificationHelper::notifyBorrowers(
                 'Buku Baru Tersedia',
                 "Buku baru tersedia: {$request->judul}",
-                '/koleksi',
+                '/riwayat',
                 'success',
                 (int) session('id')
             );
@@ -194,6 +254,14 @@ class BookController extends Controller
     public function simpane(Request $request)
     {
         if (session('id') > 0) {
+            $request->validate([
+                'judul' => 'required|string|max:255',
+                'isbn' => 'nullable|string|max:32',
+                'nomor_buku' => 'nullable|string|max:64|unique:books,nomor_buku,' . $request->id,
+                'barcode' => 'nullable|string|max:64|unique:books,barcode,' . $request->id,
+                'stok' => 'required|integer|min:0',
+            ]);
+
             $before = DB::table('books')->where('id', $request->id)->first();
 
             $fotoPath = $request->hasFile('foto') ? $request->file('foto')->store('covers', 'public') : null;
@@ -201,11 +269,19 @@ class BookController extends Controller
 
             $updateData = [
                 'judul' => $request->judul,
+                'isbn' => $request->isbn,
+                'nomor_buku' => $request->nomor_buku ?: ($before->nomor_buku ?? $this->nextBookNumber()),
+                'barcode' => $request->barcode ?: ($before->barcode ?? $this->nextBarcode()),
                 'penulis_id' => $request->penulis_id,
                 'penerbit_id' => $request->penerbit_id,
                 'tahun' => $request->tahun,
                 'kategori_id' => $request->kategori_id,
+                'rak_kategori' => $request->rak_kategori,
+                'rak_lokasi' => $request->rak_lokasi,
+                'bahasa' => $request->bahasa,
+                'jumlah_halaman' => $request->jumlah_halaman,
                 'stok' => $request->stok,
+                'kondisi_buku' => $request->kondisi_buku ?? 'baik',
             ];
 
             if ($fotoPath) {
@@ -219,11 +295,19 @@ class BookController extends Controller
 
             $oldValues = $before ? [
                 'judul' => $before->judul,
+                'isbn' => $before->isbn ?? null,
+                'nomor_buku' => $before->nomor_buku ?? null,
+                'barcode' => $before->barcode ?? null,
                 'penulis_id' => $before->penulis_id,
                 'penerbit_id' => $before->penerbit_id,
                 'tahun' => $before->tahun,
                 'kategori_id' => $before->kategori_id,
+                'rak_kategori' => $before->rak_kategori ?? null,
+                'rak_lokasi' => $before->rak_lokasi ?? null,
+                'bahasa' => $before->bahasa ?? null,
+                'jumlah_halaman' => $before->jumlah_halaman ?? null,
                 'stok' => $before->stok,
+                'kondisi_buku' => $before->kondisi_buku ?? null,
                 'foto' => $before->foto,
                 'file_buku' => $before->file_buku ?? null,
             ] : null;
