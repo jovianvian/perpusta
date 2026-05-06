@@ -250,7 +250,7 @@
     <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeBookModal()"></div>
 
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-200 dark:border-slate-700">
+        <div class="relative transform rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col overflow-hidden">
             
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white" id="modalTitle">{{ __('Add New Book') }}</h3>
@@ -261,12 +261,12 @@
                 </button>
             </div>
 
-            <form id="bookForm" action="{{ url('/databuku/store') }}" method="POST" enctype="multipart/form-data">
+            <form id="bookForm" action="{{ url('/databuku/store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col min-h-0">
                 @csrf
                 <input type="hidden" name="id" id="bookId">
                 <div id="methodContainer"></div>
 
-                <div class="px-6 py-6 space-y-6">
+                <div class="px-6 py-6 space-y-6 overflow-y-auto flex-1">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Title -->
                         <div class="col-span-2">
@@ -408,7 +408,7 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-200 dark:border-slate-700 transition-colors">
+                <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-200 dark:border-slate-700 transition-colors sticky bottom-0">
                     <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-indigo-600/20">
                         Save Book
                     </button>
@@ -425,25 +425,29 @@
 <div id="importModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeImportModal()"></div>
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-slate-700">
+        <div class="relative transform rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white">Import Books from Excel</h3>
                 <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <form action="{{ route('books.import') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('books.import') }}" method="POST" enctype="multipart/form-data" class="flex flex-col min-h-0">
                 @csrf
-                <div class="p-6 space-y-4">
+                <div class="p-6 space-y-4 overflow-y-auto flex-1">
                     <p class="text-sm text-slate-500 dark:text-slate-400">
                         Upload file Excel/CSV dengan format minimal:
                         <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">Judul, Penulis, Penerbit, Tahun, Kategori, Stok</span>.
                         Kolom opsional:
                         <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">ISBN, Nomor_Buku, Barcode, Rak_Kategori, Lokasi_Rak, Bahasa, Jumlah_Halaman, Kondisi</span>.
                     </p>
+                    <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                        <p class="text-xs text-emerald-300 mb-2">Barcode bisa diimport lewat kolom <span class="font-mono">Barcode</span> (atau <span class="font-mono">barcode</span>) di file Excel/CSV.</p>
+                        <button type="button" onclick="downloadBookImportTemplate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg">Download Template Import</button>
+                    </div>
                     <input type="file" name="file_excel" accept=".xlsx, .xls, .csv" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-slate-300">
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-200 dark:border-slate-700">
+                <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-200 dark:border-slate-700 sticky bottom-0">
                     <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg">Upload & Import</button>
                     <button type="button" onclick="closeImportModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
                 </div>
@@ -495,6 +499,25 @@
     }
     function closeImportModal() {
         document.getElementById('importModal').classList.add('hidden');
+    }
+
+    function downloadBookImportTemplate() {
+        const headers = [
+            'Judul','Penulis','Penerbit','Tahun','Kategori','Stok',
+            'ISBN','Nomor_Buku','Barcode','Rak_Kategori','Lokasi_Rak','Bahasa','Jumlah_Halaman','Kondisi'
+        ];
+        const sample = [
+            'Matematika Kelas 7','Budi Santoso','Erlangga','2026','Pelajaran','10',
+            '9786021234567','SPH-BK-2026-000001','SPH260506000001','A','A-01','Indonesia','220','baik'
+        ];
+        const csv = [headers.join(','), sample.join(',')].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'template-import-buku-barcode.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     function handleFileSelect(input, previewId, placeholderId) {
