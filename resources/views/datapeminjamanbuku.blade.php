@@ -52,10 +52,10 @@
     <form action="{{ url('/peminjaman/scan-kembali') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
         @csrf
         <div class="md:col-span-3">
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Scan Barcode Pengembalian</label>
-            <input name="barcode" autofocus class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="Scan barcode buku lalu enter">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">{{ __('Scan Return Barcode') }}</label>
+            <input name="barcode" autofocus class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white" placeholder="{{ __('Scan book barcode then press enter') }}">
         </div>
-        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg">Proses Kembali</button>
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg">{{ __('Process Return') }}</button>
     </form>
 </div>
 @endif
@@ -96,7 +96,7 @@
                         @elseif($item->status == 'pending_kembali')
                             <span class="bg-purple-500/10 text-purple-500 dark:text-purple-400 border border-purple-500/20 rounded-full px-3 py-1 text-xs font-medium">{{ __('Request Return') }}</span>
                         @elseif($item->status == 'baca_di_tempat')
-                            <span class="bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 border border-cyan-500/20 rounded-full px-3 py-1 text-xs font-medium">Baca di Tempat</span>
+                            <span class="bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 border border-cyan-500/20 rounded-full px-3 py-1 text-xs font-medium">{{ __('Read In Library') }}</span>
                         @else
                             <span class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full px-3 py-1 text-xs font-medium">{{ $item->status }}</span>
                         @endif
@@ -152,17 +152,17 @@
 <div id="historyContainer" class="hidden mt-8">
     <h2 class="text-xl font-bold text-blue-500 dark:text-blue-400 mb-4 flex items-center gap-2">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        Edit History (Revertable)
+        {{ __('Edit History (Revertable)') }}
     </h2>
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-blue-500/20 overflow-hidden transition-colors">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                     <tr>
-                        <th class="p-4">Editor</th>
-                        <th class="p-4">Changes</th>
-                        <th class="p-4">Date</th>
-                        <th class="p-4 text-center">Action</th>
+                        <th class="p-4">{{ __('Editor') }}</th>
+                        <th class="p-4">{{ __('Changes') }}</th>
+                        <th class="p-4">{{ __('Date') }}</th>
+                        <th class="p-4 text-center">{{ __('Action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -173,12 +173,12 @@
                             <td class="p-4 text-slate-600 dark:text-slate-300 text-sm">{{ $h->perubahan }}</td>
                             <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ $h->created_at }}</td>
                             <td class="p-4 text-center">
-                                <a href="{{ url('/revert/' . $h->id) }}" onclick="return confirm('Revert changes?')" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 text-sm font-medium">Revert</a>
+                                <a href="{{ url('/revert/' . $h->id) }}" onclick="return confirm('{{ __('Revert changes?') }}')" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 text-sm font-medium">{{ __('Revert') }}</a>
                             </td>
                         </tr>
                         @endforeach
                     @else
-                        <tr><td colspan="4" class="p-4 text-center text-slate-500">No history found.</td></tr>
+                        <tr><td colspan="4" class="p-4 text-center text-slate-500">{{ __('No history found.') }}</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -190,17 +190,17 @@
 <div id="trashContainer" class="hidden mt-8">
     <h2 class="text-xl font-bold text-red-500 dark:text-red-400 mb-4 flex items-center gap-2">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-        Trash Bin (Soft Deleted)
+        {{ __('Trash Bin (Soft Deleted)') }}
     </h2>
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-red-500/20 overflow-hidden transition-colors">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                     <tr>
-                        <th class="p-4">Borrower</th>
-                        <th class="p-4">Book</th>
-                        <th class="p-4">Deleted At</th>
-                        <th class="p-4 text-center">Actions</th>
+                        <th class="p-4">{{ __('Borrower') }}</th>
+                        <th class="p-4">{{ __('Book') }}</th>
+                        <th class="p-4">{{ __('Deleted At') }}</th>
+                        <th class="p-4 text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -211,13 +211,13 @@
                             <td class="p-4 text-slate-600 dark:text-slate-300">{{ $d->judul_buku }}</td>
                             <td class="p-4 text-slate-500 dark:text-slate-400 text-xs">{{ $d->deleted_at }}</td>
                             <td class="p-4 text-center flex justify-center gap-3">
-                                <a href="{{ url('/restore/peminjaman/' . $d->id) }}" class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-medium text-sm">Restore</a>
-                                <a href="{{ url('/force-delete/peminjaman/' . $d->id) }}" onclick="return confirm('Delete permanently?')" class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 font-medium text-sm">Delete</a>
+                                <a href="{{ url('/restore/peminjaman/' . $d->id) }}" class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-medium text-sm">{{ __('Restore') }}</a>
+                                <a href="{{ url('/force-delete/peminjaman/' . $d->id) }}" onclick="return confirm('{{ __('Delete permanently?') }}')" class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 font-medium text-sm">{{ __('Delete') }}</a>
                             </td>
                         </tr>
                         @endforeach
                     @else
-                        <tr><td colspan="4" class="p-4 text-center text-slate-500">No deleted items.</td></tr>
+                        <tr><td colspan="4" class="p-4 text-center text-slate-500">{{ __('No deleted items.') }}</td></tr>
                     @endif
                 </tbody>
             </table>
@@ -231,7 +231,7 @@
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-slate-700">
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white" id="modalTitle">Add New Loan</h3>
+                <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white" id="modalTitle">{{ __('Add New Loan') }}</h3>
                 <button type="button" onclick="closeLoanModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -244,9 +244,9 @@
                 
                 <div class="px-6 py-6 space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Borrower (User)</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Borrower (User)') }}</label>
                         <select name="user_id" id="user_id" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                            <option value="">-- Select User --</option>
+                            <option value="">{{ __('-- Select User --') }}</option>
                             @foreach($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                             @endforeach
@@ -254,22 +254,22 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Jenis Transaksi</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Transaction Type') }}</label>
                         <select name="transaction_type" id="transaction_type" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                            <option value="pinjam">Pinjam (Bawa Pulang)</option>
-                            <option value="baca_di_tempat">Baca di Tempat</option>
+                            <option value="pinjam">{{ __('Borrow (Take Home)') }}</option>
+                            <option value="baca_di_tempat">{{ __('Read In Library') }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Scan Barcode (Opsional)</label>
-                        <input type="text" name="barcode_input" id="barcode_input" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors" placeholder="Scan barcode untuk pilih buku otomatis">
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Scan Barcode (Optional)') }}</label>
+                        <input type="text" name="barcode_input" id="barcode_input" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors" placeholder="{{ __('Scan barcode to select book automatically') }}">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Book</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Book') }}</label>
                         <select name="book_id" id="book_id" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                            <option value="">-- Select Book --</option>
+                            <option value="">{{ __('-- Select Book --') }}</option>
                             @foreach($books as $book)
                             <option value="{{ $book->id }}">{{ $book->judul }}</option>
                             @endforeach
@@ -277,29 +277,29 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Loan Date</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Loan Date') }}</label>
                         <input type="date" name="tanggal_pinjam" id="tanggal_pinjam" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Return Date</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Return Date') }}</label>
                         <input type="date" name="tanggal_kembali" id="tanggal_kembali" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                        <p class="text-xs text-slate-500 mt-1">Leave empty if not yet returned</p>
+                        <p class="text-xs text-slate-500 mt-1">{{ __('Leave empty if not yet returned') }}</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Status</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Status') }}</label>
                         <select name="status" id="status" required class="w-full bg-slate-100 dark:bg-slate-700 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 rounded-lg text-slate-900 dark:text-white py-2.5 px-4 transition-colors">
-                            <option value="dipinjam">Dipinjam (Active)</option>
-                            <option value="dikembalikan">Dikembalikan (Returned)</option>
-                            <option value="baca_di_tempat">Baca di Tempat</option>
+                            <option value="dipinjam">{{ __('Borrowed (Active)') }}</option>
+                            <option value="dikembalikan">{{ __('Returned') }}</option>
+                            <option value="baca_di_tempat">{{ __('Read In Library') }}</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-200 dark:border-slate-700 transition-colors">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-indigo-600/20">Save</button>
-                    <button type="button" onclick="closeLoanModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium py-2 px-4 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-indigo-600/20">{{ __('Save') }}</button>
+                    <button type="button" onclick="closeLoanModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium py-2 px-4 rounded-lg transition-colors">{{ __('Cancel') }}</button>
                 </div>
             </form>
         </div>
@@ -312,28 +312,28 @@
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-200 dark:border-slate-700">
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Process Return</h3>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">{{ __('Process Return') }}</h3>
             </div>
             <form id="returnForm" method="GET">
                 <div class="px-6 py-4 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Book Condition</label>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Book Condition') }}</label>
                         <select name="kondisi" id="kondisi" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-indigo-500 transition-colors" onchange="checkCondition()">
-                            <option value="baik">Good (Normal Return)</option>
-                            <option value="rusak">Damaged (Fine Applies)</option>
-                            <option value="hilang">Lost (Fine Applies)</option>
+                            <option value="baik">{{ __('Good (Normal Return)') }}</option>
+                            <option value="rusak">{{ __('Damaged (Fine Applies)') }}</option>
+                            <option value="hilang">{{ __('Lost (Fine Applies)') }}</option>
                         </select>
                     </div>
 
                     <div id="dendaContainer" class="hidden">
-                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Additional Fine (Rp)</label>
-                        <input type="number" name="denda_tambahan" id="denda_tambahan" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-red-500 transition-colors" placeholder="Enter fine amount">
-                        <p class="text-xs text-slate-500 mt-1">Fine for late return will be calculated automatically.</p>
+                        <label class="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{{ __('Additional Fine (Rp)') }}</label>
+                        <input type="number" name="denda_tambahan" id="denda_tambahan" class="w-full bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg text-slate-900 dark:text-white p-2.5 focus:ring-2 focus:ring-red-500 transition-colors" placeholder="{{ __('Enter fine amount') }}">
+                        <p class="text-xs text-slate-500 mt-1">{{ __('Fine for late return will be calculated automatically.') }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 border-t border-slate-200 dark:border-slate-700 transition-colors">
-                    <button type="button" onclick="closeReturnModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg transition-colors">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">Process Return</button>
+                    <button type="button" onclick="closeReturnModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg transition-colors">{{ __('Cancel') }}</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">{{ __('Process Return') }}</button>
                 </div>
             </form>
         </div>

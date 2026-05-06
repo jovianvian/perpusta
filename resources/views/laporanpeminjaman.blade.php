@@ -3,8 +3,8 @@
 @section('content')
 <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Laporan Peminjaman</h1>
-        <p class="text-slate-500 dark:text-slate-400">View and export loan reports</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">{{ __('Loan Report') }}</h1>
+        <p class="text-slate-500 dark:text-slate-400">{{ __('View and export loan reports') }}</p>
     </div>
 </div>
 
@@ -12,20 +12,20 @@
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6 transition-colors">
     <form action="{{ url('/laporanpeminjaman') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
         <div>
-            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">From Date</label>
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">{{ __('From Date') }}</label>
             <input type="date" name="from" value="{{ request('from') }}" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg text-slate-900 dark:text-white py-2.5 px-4 focus:ring-2 focus:ring-indigo-500">
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">To Date</label>
+            <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">{{ __('To Date') }}</label>
             <input type="date" name="to" value="{{ request('to') }}" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-transparent rounded-lg text-slate-900 dark:text-white py-2.5 px-4 focus:ring-2 focus:ring-indigo-500">
         </div>
         <div class="flex gap-3">
             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                Filter
+                {{ __('Filter') }}
             </button>
             <a href="{{ url('/laporanpeminjaman') }}" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center">
-                Reset
+                {{ __('Reset') }}
             </a>
         </div>
     </form>
@@ -35,7 +35,7 @@
 <div class="flex flex-wrap gap-3 mb-6">
     <a href="{{ url('/laporanpeminjaman/print') }}?from={{ request('from') }}&to={{ request('to') }}" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        Print
+        {{ __('Print') }}
     </a>
     <a href="{{ url('/laporanpeminjaman/pdf') }}?from={{ request('from') }}&to={{ request('to') }}" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -53,13 +53,13 @@
         <table class="js-smart-table w-full text-left border-collapse" id="tableLaporan" data-filter-fields="status,kategori" data-smart-mode="manual">
             <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
                 <tr>
-                    <th class="p-4 font-medium">No</th>
-                    <th class="p-4 font-medium">Borrower</th>
-                    <th class="p-4 font-medium">Book Title</th>
-                    <th class="p-4 font-medium">Category</th>
-                    <th class="p-4 font-medium">Loan Date</th>
-                    <th class="p-4 font-medium">Return Date</th>
-                    <th class="p-4 font-medium">Status</th>
+                    <th class="p-4 font-medium">{{ __('No') }}</th>
+                    <th class="p-4 font-medium">{{ __('Borrower') }}</th>
+                    <th class="p-4 font-medium">{{ __('Book Title') }}</th>
+                    <th class="p-4 font-medium">{{ __('Category') }}</th>
+                    <th class="p-4 font-medium">{{ __('Loan Date') }}</th>
+                    <th class="p-4 font-medium">{{ __('Return Date') }}</th>
+                    <th class="p-4 font-medium">{{ __('Status') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -74,11 +74,11 @@
                     <td class="p-4">
                         @if($l->status == 'Dipinjam' || $l->status == 'dipinjam')
                         <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-3 py-1 text-xs font-medium">
-                            Borrowed
+                            {{ __('Borrowed') }}
                         </span>
                         @elseif($l->status == 'Dikembalikan' || $l->status == 'dikembalikan')
                         <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-3 py-1 text-xs font-medium">
-                            Returned
+                            {{ __('Returned') }}
                         </span>
                         @else
                         <span class="bg-slate-700 text-slate-300 rounded-full px-3 py-1 text-xs font-medium">
@@ -90,7 +90,7 @@
                 @empty
                 <tr>
                     <td colspan="7" class="p-8 text-center text-slate-500">
-                        No records found.
+                        {{ __('No records found.') }}
                     </td>
                 </tr>
                 @endforelse
@@ -100,7 +100,7 @@
     
     <!-- No Data Message (Hidden by default, used by JS) -->
     <div id="noDataMessage" class="hidden p-8 text-center text-slate-500">
-        No data found for the selected date range.
+        {{ __('No data found for the selected date range.') }}
     </div>
 </div>
 
@@ -110,7 +110,7 @@
         const toDate = document.getElementById('filterTo').value;
         
         if (!fromDate || !toDate) {
-            alert('Please select both From and To dates.');
+            alert(@json(__('Please select both From and To dates.')));
             return;
         }
 
