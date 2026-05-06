@@ -27,6 +27,12 @@
             </svg>
             {{ __('Import Excel') }}
         </button>
+        <button onclick="openImportBarcodeModal()" class="bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-cyan-600/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M8 7v10M12 7v10M16 7v10M20 7v10"></path>
+            </svg>
+            Import Barcode
+        </button>
         <button onclick="openAddBookModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -456,6 +462,40 @@
     </div>
 </div>
 
+<!-- Import Barcode Modal -->
+<div id="importBarcodeModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeImportBarcodeModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div class="relative transform rounded-2xl bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold leading-6 text-slate-800 dark:text-white">Import Barcode Buku</h3>
+                <button type="button" onclick="closeImportBarcodeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form action="{{ route('books.import.barcode') }}" method="POST" enctype="multipart/form-data" class="flex flex-col min-h-0">
+                @csrf
+                <div class="p-6 space-y-4 overflow-y-auto flex-1">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Format minimum kolom:
+                        <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">Barcode</span>.
+                        Disarankan:
+                        <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">Barcode, Judul, Nomor_Buku, Stok / Tambah_Stok, ISBN</span>.
+                    </p>
+                    <div class="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3">
+                        <button type="button" onclick="downloadBarcodeImportTemplate()" class="text-xs bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1.5 rounded-lg">Download Template Barcode</button>
+                    </div>
+                    <input type="file" name="file_barcode" accept=".xlsx, .xls, .csv" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 dark:file:bg-slate-700 dark:file:text-slate-300">
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-slate-200 dark:border-slate-700 sticky bottom-0">
+                    <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg">Upload & Import Barcode</button>
+                    <button type="button" onclick="closeImportBarcodeModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium py-2 px-4 rounded-lg">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     const bookUiText = {
         addTitle: @json(__('Add New Book')),
@@ -500,6 +540,12 @@
     function closeImportModal() {
         document.getElementById('importModal').classList.add('hidden');
     }
+    function openImportBarcodeModal() {
+        document.getElementById('importBarcodeModal').classList.remove('hidden');
+    }
+    function closeImportBarcodeModal() {
+        document.getElementById('importBarcodeModal').classList.add('hidden');
+    }
 
     function downloadBookImportTemplate() {
         const headers = [
@@ -516,6 +562,19 @@
         const a = document.createElement('a');
         a.href = url;
         a.download = 'template-import-buku-barcode.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function downloadBarcodeImportTemplate() {
+        const headers = ['Barcode','Judul','Nomor_Buku','Stok','Tambah_Stok','ISBN'];
+        const sample = ['SPH260506000001','Matematika Kelas 7','SPH-BK-2026-000001','10','2','9786021234567'];
+        const csv = [headers.join(','), sample.join(',')].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'template-import-barcode-buku.csv';
         a.click();
         URL.revokeObjectURL(url);
     }

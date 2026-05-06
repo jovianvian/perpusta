@@ -141,6 +141,89 @@ class BookController extends Controller
         return view('404');
     }
 
+    public function importBarcode(Request $request)
+    {
+        if (session('id') <= 0) {
+            return view('404');
+        }
+
+        $request->validate([
+            'file_barcode' => 'required|file|mimes:xlsx,csv,xls',
+        ]);
+
+        $rows = SimpleExcelReader::create($request->file('file_barcode')->getPathname())->getRows();
+        $updated = 0;
+        $created = 0;
+        $failed = 0;
+
+        foreach ($rows as $row) {
+            try {
+                $barcode = $this->pickRowValue($row, ['Barcode', 'barcode', 'Kode_Barcode', 'kode_barcode']);
+                if (!$barcode) {
+                    $failed++;
+                    continue;
+                }
+
+                $judul = $this->pickRowValue($row, ['Judul', 'judul', 'Title', 'title']);
+                $nomorBuku = $this->pickRowValue($row, ['Nomor_Buku', 'Nomor Buku', 'nomor_buku', 'Book_Number']);
+                $stokBaru = $this->pickRowValue($row, ['Stok', 'stok', 'Stock', 'stock']);
+                $stokTambah = $this->pickRowValue($row, ['Tambah_Stok', 'Tambah Stok', 'tambah_stok', 'add_stock']);
+                $isbn = $this->pickRowValue($row, ['ISBN', 'isbn']);
+
+                $book = DB::table('books')
+                    ->whereRaw('LOWER(TRIM(barcode)) = ?', [strtolower($barcode)])
+                    ->first();
+
+                if ($book) {
+                    $payload = ['updated_at' => now()];
+                    if ($judul) $payload['judul'] = $judul;
+                    if ($nomorBuku) $payload['nomor_buku'] = $nomorBuku;
+                    if ($isbn) $payload['isbn'] = $isbn;
+                    if ($stokBaru !== null && $stokBaru !== '') {
+                        $payload['stok'] = (int) $stokBaru;
+                    }
+                    DB::table('books')->where('id', $book->id)->update($payload);
+
+                    if ($stokTambah !== null && $stokTambah !== '') {
+                        DB::table('books')->where('id', $book->id)->increment('stok', (int) $stokTambah);
+                    }
+
+                    $updated++;
+                } else {
+                    if (!$judul) {
+                        $judul = 'No Title';
+                    }
+
+                    $penulisId = $this->findOrCreateId('penulis', 'nama_penulis', $this->pickRowValue($row, ['Penulis', 'penulis', 'Author', 'author'], 'Unknown'));
+                    $penerbitId = $this->findOrCreateId('penerbit', 'nama_penerbit', $this->pickRowValue($row, ['Penerbit', 'penerbit', 'Publisher', 'publisher'], 'Unknown'));
+                    $kategoriId = $this->findOrCreateId('kategori', 'nama_kategori', $this->pickRowValue($row, ['Kategori', 'kategori', 'Category', 'category'], 'Umum'));
+
+                    DB::table('books')->insert([
+                        'judul' => $judul,
+                        'isbn' => $isbn,
+                        'nomor_buku' => $nomorBuku ?: $this->nextBookNumber(),
+                        'barcode' => $barcode,
+                        'penulis_id' => $penulisId,
+                        'penerbit_id' => $penerbitId,
+                        'tahun' => (int) $this->pickRowValue($row, ['Tahun', 'tahun', 'Year', 'year'], date('Y')),
+                        'kategori_id' => $kategoriId,
+                        'stok' => (int) ($stokBaru !== null && $stokBaru !== '' ? $stokBaru : 0),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    if ($stokTambah !== null && $stokTambah !== '') {
+                        DB::table('books')->where('barcode', $barcode)->increment('stok', (int) $stokTambah);
+                    }
+                    $created++;
+                }
+            } catch (\Throwable $e) {
+                $failed++;
+            }
+        }
+
+        return back()->with('success', "Import barcode selesai. Update: {$updated}, Baru: {$created}, Gagal: {$failed}.");
+    }
+
 
     private function findOrCreateId($table, $column, $value)
     {

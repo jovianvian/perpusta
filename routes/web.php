@@ -76,6 +76,7 @@ Route::group(['middleware' => 'web'], function () {
     Route::post('/databuku/update/{id}', [BookController::class, 'simpane'])->middleware('permission:buku.update');
     Route::get('/databuku/delete/{id}', [BookController::class, 'delete'])->middleware('permission:buku.delete');
     Route::post('/databuku/import', [BookController::class, 'import'])->name('books.import'); // New Route
+    Route::post('/databuku/import-barcode', [BookController::class, 'importBarcode'])->name('books.import.barcode')->middleware('permission:buku.update');
     
     // MASTER DATA (Unified)
     Route::get('/master-data', [MasterDataController::class, 'index'])->middleware('permission:buku.read');
